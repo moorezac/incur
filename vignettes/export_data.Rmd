@@ -1,0 +1,37 @@
+---
+title: "1. Exporting data from the IncuCyte"
+author: "Zachery Moore"
+date: "2025-02-13"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{export_data}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  markdown: 
+    wrap: 80
+---
+
+## Export
+
+There are multiple methods to export data from an IncuCyte. `incur` expects data to be in the "Meta Imaging Series TIFF" format. Here we are using IncuCyte 2022B Rev 2. 
+
+Open up the plate, and select "Export Images and Movies". Then, make sure to choose "As Stored". For fluorescent data, if fluorophores have overlapping spectra, ensure that the overlap percentages are correctly set within "Spectral Unmixing". 
+
+Make sure to choose "Uncalibrated" units for the export. Brief testing shows that both "Calibrated" and "Uncalibrated" images produce identical histograms when converted to 8-bit. This conversion is required for the final merging of all channels. In addition, the sole export option for "Calibrated" images are individual .tiff files which lack metadata information.
+
+Then, select scan times and wells as needed.
+
+For the final step, make sure that the file format is set to "Meta Imaging Series TIFF". Don't alter the file name prefix. Then, export images to a folder of your choice. Make sure that all channels from each plate are exported into separate folders. Your folder structure should look like:
+```
+plate/
+  ├── phase
+  ├── green
+  └── red
+```
+
+We then merge all channels together into a single .tiff file for each well. To do this we use the `merge_incu_channels.py` script. This script takes an arbitrary number of directories as arguments, with each directory being added as a channel (in order), and the last argument being the directory to save the merged image. For example, using the above directory structure, running the following code in the terminal:
+```
+python merge_incu_channels.py phase/ green/ red/ composite/
+```
+Will take the phase, green, and red images, merge into a new image with channel 1 being phase, channel 2 being green etc., and then save them in a new folder `composite/`. For each image (well), this script will also produce a `datetime.csv` file which contains the precise datetime for each image, and a `metadata.csv` file that contains all IncuCyte-specific metadata.
