@@ -56,4 +56,6 @@ cd Fiji.app
 ./ImageJ-linux64 --headless path/to/script/trackmate_cellpose_segment.py
 ```
 
-On a SLURM-equipped HPC (like the one at WEHI), this process cannot be achieved via the traditional `sbatch` command, as it needs to be run in an interactive manner. The provided script `example_slurm_srun.sh` that demonstrates how to achieve this. The downside with this approach is that the machine it is run needs to stay turned on/connected or else the interactive session stops. As a workaround, we start a VM, then run the script from there. The provided script also skips previously segmented images to save time as well. This will then produce a `-spots.csv` containing readouts across time and TrackMate `.xml` to view the data in FIJI/ImageJ.
+On a SLURM-equipped HPC (like the one at WEHI), this process cannot be achieved via the traditional `sbatch` command, as it needs to be run in an interactive manner. The provided script `example_slurm_srun.sh` that demonstrates how to achieve this. The downside with this approach is that the machine it is run needs to stay turned on/connected or else the interactive session stops. As a workaround, we start a VM, then run the script from there. The provided script also skips previously segmented images to save time. This will then produce a `-spots.csv` containing readouts across time and TrackMate `.xml` to view the data in FIJI/ImageJ. 
+
+We then use the `-spots.csv` for all further analysis work. See next vignette.
