@@ -18,8 +18,7 @@ import_trackmate_spot_data <- function(
 
     if (length(spot_paths) != length(time_paths)) {
       message("no. of spot files does not equal no. of time files")
-      message("is this an error in segmentation?"
-      )
+      message("is this an error in segmentation?")
     }
 
     # these should be ordered, but just to be safe:
@@ -64,12 +63,12 @@ import_trackmate_spot_data <- function(
         }
       }
     )
-    
+
     spot_list <- discard(
       .x = spot_list,
       .p = is_na
     )
-    
+
     names(spot_list) <- map_chr(
       .x = spot_list,
       .f = function(x) {
@@ -89,9 +88,9 @@ import_trackmate_spot_data <- function(
     )
     names(datetime_list) <- str_split(time_paths, "_") |> map_chr(2)
 
-    datetime_list <- 
+    datetime_list <-
       datetime_list[names(datetime_list) %in% names(spot_list)]
-    
+
     # add in datetimes
     spot_list <- map2(
       .x = spot_list,

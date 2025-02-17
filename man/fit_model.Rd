@@ -11,6 +11,7 @@ fit_model(
   .curve_func,
   .start_func = NULL,
   .start_vals = NULL,
+  .huber = FALSE,
   .detect_outliers = FALSE,
   .shared_group = NULL,
   .shared_params = NULL,
@@ -33,7 +34,9 @@ fit_model(
 
 \item{.start_vals}{A named list of starting values for all arguments/parameters within \code{curv_func}. This cannot be used in conjunction with \code{.detect_outliers}.}
 
-\item{.detect_outliers}{Boolean to indicate whether to filter outliers as described in Motulsky and Brown (2006).}
+\item{.huber}{Perform iterative reweighted least squares non-linear regression using the Huber loss function.}
+
+\item{.detect_outliers}{Boolean to indicate whether to filter outliers as described in Motulsky and Brown (2006). It is highly recommended that the \code{.huber} argument is set to true in order to start with "robust" regression.}
 
 \item{.shared_group}{For nested fits (shared parameters), the quoted/unquoted argument for the column in \code{.data} that refers to individual groups to share fitted parameters.}
 
@@ -48,7 +51,11 @@ fit_model(
 \item{...}{Other arguments to be passed to \code{minpack.lm::nlsLM}, such as \code{control} or \code{weights}.}
 }
 \value{
-A list containing the \code{nlsModel} object and the data with/without outlier column added in the format \verb{outlier_\{y_var\}}.
+A names list containing:
+\itemize{
+\item \code{fit}:the fitted \code{nlsModel} object
+\item \code{data}: the original data with/without outlier column added in the format \verb{outlier_\{y_var\}}.
+}
 }
 \description{
 This the function used to fit
@@ -60,20 +67,20 @@ func_start <- function(x, y) list(ym = max(y), y0 = min(y), k = 1)
 
 # fit the curve to the data
 # share y0 and k across state and force y0 > 0
-fit <- fit_model_new(
-.data = Puromycin,
-.x_var = conc,
-.y_var = rate,
-.curve_func = func,
-.start_func = func_start,
-.detect_outliers = TRUE,
-.lower_bounds = list(y0 = 0),
-.shared_group = state,
-.shared_params = c("y0", "k"),
-control = minpack.lm::nls.lm.control(maxiter = 1e3)
+fit <- fit_model(
+  .data = Puromycin,
+  .x_var = conc,
+  .y_var = rate,
+  .curve_func = func,
+  .start_func = func_start,
+  .detect_outliers = TRUE,
+  .lower_bounds = list(y0 = 0),
+  .shared_group = state,
+  .shared_params = c("y0", "k"),
+  control = minpack.lm::nls.lm.control(maxiter = 1e3)
 )
 # create data from each group
-predicted <- map(unique(Puromycin$state), function(i) \{
+predicted <- map(unique(Puromycin$state), function(i) {
   # more data points = smoother curve
   # this is easier than a geom_function approach
   x_vals <- seq(min(fit$data$x), max(fit$data$x), length.out = 1e4)
@@ -83,7 +90,7 @@ predicted <- map(unique(Puromycin$state), function(i) \{
     y = predict(res$fit, newdata = tibble(x = x_vals, group = i)),
     group = i
   )
-\})
+})
 # collate
 predicted <- bind_rows(predicted)
 # plot

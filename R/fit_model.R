@@ -6,14 +6,20 @@
 #' @param .curve_func A function that describes a curve/model in terms of `x`. See below for examples.
 #' @param .start_func A function with arguments `x` and `y` that returns a named list of starting values for all arguments/parameters within `.curv_func`. See below for examples.
 #' @param .start_vals A named list of starting values for all arguments/parameters within `curv_func`. This cannot be used in conjunction with `.detect_outliers`.
-#' @param .detect_outliers Boolean to indicate whether to filter outliers as described in Motulsky and Brown (2006).
+#' @param .huber Perform iterative reweighted least squares non-linear regression using the Huber loss function.
+#' @param .detect_outliers Boolean to indicate whether to filter outliers as described in Motulsky and Brown (2006). It is highly recommended that the `.huber` argument is set to true in order to start with "robust" regression.
 #' @param .shared_group For nested fits (shared parameters), the quoted/unquoted argument for the column in `.data` that refers to individual groups to share fitted parameters.
 #' @param .shared_params For nested fits (shared parameters), a character vector that indicates which parameter(s) in `.curve_func` are to be shared across groups.
 #' @param .lower_bounds A named list that contains the lower bounds for specified parameters. All other lower bounds will be set at `-Inf`.
 #' @param .upper_bounds A named list that contains the upper bounds for specified parameters. All other upper bounds will be set at `Inf`.
 #' @param .return_func For nested fits (shared parameters), a boolean to indicate whether to return a modified `.curve_func` used in this process.
 #' @param ... Other arguments to be passed to `minpack.lm::nlsLM`, such as `control` or `weights`.
-#' @return A list containing the `nlsModel` object and the data with/without outlier column added in the format `outlier_{y_var}`.
+#' @return A names list containing:
+#'  \itemize{
+#'    \item `fit`: the fitted `nlsModel` object 
+#'    \item `data`: the original data with/without outlier column added in the format `outlier_{y_var}`.
+#'  }
+#'  
 #' @export
 #' @examples
 #' # exponential plateau
@@ -22,20 +28,20 @@
 #'
 #' # fit the curve to the data
 #' # share y0 and k across state and force y0 > 0
-#' fit <- fit_model_new(
-#' .data = Puromycin,
-#' .x_var = conc,
-#' .y_var = rate,
-#' .curve_func = func,
-#' .start_func = func_start,
-#' .detect_outliers = TRUE,
-#' .lower_bounds = list(y0 = 0),
-#' .shared_group = state,
-#' .shared_params = c("y0", "k"),
-#' control = minpack.lm::nls.lm.control(maxiter = 1e3)
+#' fit <- fit_model(
+#'   .data = Puromycin,
+#'   .x_var = conc,
+#'   .y_var = rate,
+#'   .curve_func = func,
+#'   .start_func = func_start,
+#'   .detect_outliers = TRUE,
+#'   .lower_bounds = list(y0 = 0),
+#'   .shared_group = state,
+#'   .shared_params = c("y0", "k"),
+#'   control = minpack.lm::nls.lm.control(maxiter = 1e3)
 #' )
 #' # create data from each group
-#' predicted <- map(unique(Puromycin$state), function(i) \{
+#' predicted <- map(unique(Puromycin$state), function(i) {
 #'   # more data points = smoother curve
 #'   # this is easier than a geom_function approach
 #'   x_vals <- seq(min(fit$data$x), max(fit$data$x), length.out = 1e4)
@@ -45,14 +51,13 @@
 #'     y = predict(res$fit, newdata = tibble(x = x_vals, group = i)),
 #'     group = i
 #'   )
-#' \})
+#' })
 #' # collate
 #' predicted <- bind_rows(predicted)
 #' # plot
 #' ggplot(mapping = aes(x, y, colour = group)) +
 #'   geom_point(data = fit$data) +
 #'   geom_line(data = predicted)
-
 fit_model <- function(
     .data,
     .x_var,
@@ -60,6 +65,7 @@ fit_model <- function(
     .curve_func,
     .start_func = NULL,
     .start_vals = NULL,
+    .huber = FALSE,
     .detect_outliers = FALSE,
     .shared_group = NULL,
     .shared_params = NULL,
@@ -67,7 +73,6 @@ fit_model <- function(
     .upper_bounds = NULL,
     .return_func = FALSE,
     ...) {
-
   # modify data
   .data <- mutate(.data, x = !!ensym(.x_var), y = !!ensym(.y_var))
   .data <- mutate(.data, x = as.numeric(x), y = as.numeric(y))
@@ -141,7 +146,7 @@ fit_model <- function(
 
   # see help page on rlang::exec for background on this approach
   fit <- try({
-    new_env <- rlang::env(dat = .data, f = .curve_func, final_arguments = final_arguments)
+    new_env <- rlang::env(dat = .data, f = .curve_func)
     eval(
       # expr(robustbase::nlrob(data = data, !!!final_arguments)),
       expr(minpack.lm::nlsLM(data = dat, !!!final_arguments)),
@@ -153,13 +158,59 @@ fit_model <- function(
     stop("error in initial model fit")
   }
 
+  if (.huber) {
+    iter <- 0
+    iter_max <- 50
+    converged <- FALSE
+    k <- 1.345
+    tol <- 1e-6
+    fit_old <- fit
+
+    # loop
+    while (iter < iter_max && !converged) {
+      coef_old <- coef(fit_old)
+      resids <- residuals(fit_old)
+      # mad
+      s <- median(abs(resids - median(resids))) * 1.4826
+      u <- resids / (s + 1e-10)
+      weights_vec <- case_when(
+        abs(u) <= k ~ 1,
+        .default = k / abs(u)
+      )
+
+      arguments_new <- append(
+        final_arguments,
+        list(weights = weights_vec)
+      )
+
+      fit_new <- try({
+        new_env <- rlang::env(dat = .data, f = .curve_func)
+        eval(
+          expr(minpack.lm::nlsLM(data = dat, !!!arguments_new)),
+          envir = new_env
+        )
+      })
+      coef_new <- coef(fit_new)
+
+      # check convergence
+      coef_change <- max(abs(coef_new - coef_old) / (abs(coef_old) + 1e-6))
+      converged <- coef_change < tol
+
+      # update for next iteration
+      fit_old <- fit_new
+      iter <- iter + 1
+    }
+    # message(str_glue("huber achieved {tol} tolerance in {iter} iterations"))
+    fit <- fit_new
+  }
+
   # outlier detection
   if (!.detect_outliers) {
     # return first fit
     final_fit <- fit
   } else {
     # which points are outliers within the fit
-    outlier_indices <- find_outlier_indices(fit)
+    outlier_indices <- find_outlier_indices(fit, .scale_method = "mad")
 
     # name a new column based on y_var and add in
     outlier_column <- str_c("outlier", rlang::as_name(enquo(.y_var)), sep = "_")

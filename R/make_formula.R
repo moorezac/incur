@@ -2,7 +2,7 @@
 #'
 #' @param .func A function that describes a curve in terms of `x` and individual curve parameters.
 #'
-#' @return A language object in the form of `y ~ .f()`
+#' @return A language object in the form of `y ~ f()`
 #'
 
 make_formula <- function(.func) {
