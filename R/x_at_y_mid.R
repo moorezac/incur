@@ -11,5 +11,6 @@ x_at_y_mid <- function(.x, .y) {
   
   mid <- min(.y) + (max(.y) - min(.y)) / 2
   index <- which.min(abs(.y - mid))
-  .x[index]
+  
+  return(.x[index])
 }

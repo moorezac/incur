@@ -51,10 +51,10 @@ fit_model(
 \item{...}{Other arguments to be passed to \code{minpack.lm::nlsLM}, such as \code{control} or \code{weights}.}
 }
 \value{
-A names list containing:
+A named list containing:
 \itemize{
-\item \code{fit}:the fitted \code{nlsModel} object
-\item \code{data}: the original data with/without outlier column added in the format \verb{outlier_\{y_var\}}.
+\item \code{fit}: the fitted \code{nlsModel} object
+\item \code{data}: the original data used in the fit. If \code{.detect_outliers} is true then column added in the format \verb{outlier_\{y_var\}} will be added to indicate which points are detected as outliers.
 }
 }
 \description{

@@ -66,7 +66,7 @@ import_trackmate_spot_data <- function(
 
     spot_list <- discard(
       .x = spot_list,
-      .p = is_na
+      .p = rlang::is_na
     )
 
     names(spot_list) <- map_chr(
@@ -86,7 +86,7 @@ import_trackmate_spot_data <- function(
         )
       }
     )
-    names(datetime_list) <- str_split(time_paths, "_") |> map_chr(2)
+    names(datetime_list) <- str_split(basename(time_paths), "_") |> map_chr(2)
 
     datetime_list <-
       datetime_list[names(datetime_list) %in% names(spot_list)]

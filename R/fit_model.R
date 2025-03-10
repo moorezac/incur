@@ -14,10 +14,10 @@
 #' @param .upper_bounds A named list that contains the upper bounds for specified parameters. All other upper bounds will be set at `Inf`.
 #' @param .return_func For nested fits (shared parameters), a boolean to indicate whether to return a modified `.curve_func` used in this process.
 #' @param ... Other arguments to be passed to `minpack.lm::nlsLM`, such as `control` or `weights`.
-#' @return A names list containing:
+#' @return A named list containing:
 #'  \itemize{
 #'    \item `fit`: the fitted `nlsModel` object 
-#'    \item `data`: the original data with/without outlier column added in the format `outlier_{y_var}`.
+#'    \item `data`: the original data used in the fit. If `.detect_outliers` is true then column added in the format `outlier_{y_var}` will be added to indicate which points are detected as outliers.
 #'  }
 #'  
 #' @export
@@ -76,8 +76,11 @@ fit_model <- function(
   # modify data
   .data <- mutate(.data, x = !!ensym(.x_var), y = !!ensym(.y_var))
   .data <- mutate(.data, x = as.numeric(x), y = as.numeric(y))
+  .data <- mutate(.data, x = as.numeric(x), y = as.numeric(y))
   .data <- relocate(.data, x, y)
 
+  .data <- drop_na(.data, x, y)
+  
   # check input
   if (is_null(.start_func) & is_null(.start_vals)) {
     stop("both start_func and start_vals provided")
@@ -160,7 +163,7 @@ fit_model <- function(
 
   if (.huber) {
     iter <- 0
-    iter_max <- 50
+    iter_max <- 100
     converged <- FALSE
     k <- 1.345
     tol <- 1e-6

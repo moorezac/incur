@@ -9,7 +9,7 @@
 
 find_root_fit <- function(.fit, .x_vals, .target) {
   uniroot(
-    f = function(x) predict(fit, tibble(x)) - target,
+    f = function(x) predict(fit, tibble(x)) - .target,
     interval = c(min(x_vals), max(x_vals))
   )
 }

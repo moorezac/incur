@@ -10,7 +10,7 @@ make_formula(.func)
 \item{.func}{A function that describes a curve in terms of \code{x} and individual curve parameters.}
 }
 \value{
-A language object in the form of \code{y ~ .f()}
+A language object in the form of \code{y ~ f()}
 }
 \description{
 Make a formula expression from a function

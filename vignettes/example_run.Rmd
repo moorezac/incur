@@ -1,0 +1,14 @@
+---
+title: "example"
+author: "Zachery Moore"
+date: "2025-03-03"
+output: html_document
+---
+
+Import our data output
+
+```{r}
+trackmate_data <- import_trackmate_spot_data(
+  paths = here
+)
+```

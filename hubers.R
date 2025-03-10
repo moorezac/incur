@@ -1,3 +1,6 @@
+library(tidyverse)
+library(minpack.lm)
+
 func <- function(x, y0, ym, k) ym - (ym - y0) * exp(-k * x)
 func_start <- function(x, y) list(ym = max(y), y0 = min(y), k = 1)
 
@@ -32,66 +35,72 @@ ggplot(mapping = aes(x, y, colour = group)) +
   geom_point(data = fit$data) +
   geom_line(data = predicted)
 
+fit
 
 dat <- datasets::DNase
-
 dat <- rbind(
   dat,
   data.frame(Run = c(1, 2, 3), conc = c(12.5, 12.5, 12.5), density = c(0.5, 0.75, 1))
 )
 
-plot(dat$density ~ dat$conc)
+library(tictoc)
+{
+  tic()
+  model_a <- fit_model(
+    .data = dat,
+    .x_var = conc,
+    .y_var = density,
+    .curve_func = func,
+    .start_func = func_start,
+    .huber = FALSE,
+    .detect_outliers = FALSE,
+    .lower_bounds = list(y0 = 0),
+    control = minpack.lm::nls.lm.control(maxiter = 1e3)
+  )
+  toc()
+}
+model_a$fit
 
-fit <- fit_model(
-  .data = dat,
-  .x_var = conc,
-  .y_var = density,
-  .curve_func = func,
-  .start_func = func_start,
-  .huber = FALSE,
-  .detect_outliers = FALSE,
-  .lower_bounds = list(y0 = 0),
-  control = minpack.lm::nls.lm.control(maxiter = 1e3)
-)
 # more data points = smoother curve
 # this is easier than a geom_function approach
-x_vals <- seq(min(fit$data$x), max(fit$data$x), length.out = 1e4)
+x_vals <- seq(min(model_a$data$x), max(model_a$data$x), length.out = 1e4)
 # create the data and return
-predicted <- tibble(
+predicted_a <- tibble(
   x = x_vals,
-  y = predict(fit$fit, newdata = tibble(x = x_vals))
+  y = predict(model_a$fit, newdata = tibble(x = x_vals))
 )
 # plot
 ggplot(mapping = aes(x, y)) +
-  geom_jitter(data = fit$data) +
-  geom_line(data = predicted)
+  geom_jitter(data = model_a$data) +
+  geom_line(data = predicted_a) + 
+  ggtitle("least squares")
 
-fit_a <- fit_model(
+model_b <- fit_model(
   .data = dat,
   .x_var = conc,
   .y_var = density,
   .curve_func = func,
   .start_func = func_start,
   .huber = TRUE,
-  .detect_outliers = FALSE,
   .lower_bounds = list(y0 = 0),
   control = minpack.lm::nls.lm.control(maxiter = 1e3)
 )
 # more data points = smoother curve
 # this is easier than a geom_function approach
-x_vals <- seq(min(fit_a$data$x), max(fit_a$data$x), length.out = 1e4)
+x_vals <- seq(min(model_b$data$x), max(model_b$data$x), length.out = 1e4)
 # create the data and return
-predicted <- tibble(
+predicted_b <- tibble(
   x = x_vals,
-  y = predict(fit_a$fit, newdata = tibble(x = x_vals))
+  y = predict(model_b$fit, newdata = tibble(x = x_vals))
 )
 # plot
 ggplot(mapping = aes(x, y)) +
-  geom_jitter(data = fit$data) +
-  geom_line(data = predicted)
-weights(fit_a$fit)
+  geom_jitter(data = model_b$data) +
+  geom_line(data = predicted_b) + 
+  ggtitle("iterative reweighted least squares")
+weights(model_b$fit)
 
-fit_b <- fit_model(
+model_c <- fit_model(
   .data = dat,
   .x_var = conc,
   .y_var = density,
@@ -104,13 +113,14 @@ fit_b <- fit_model(
 )
 # more data points = smoother curve
 # this is easier than a geom_function approach
-x_vals <- seq(min(fit_b$data$x), max(fit_b$data$x), length.out = 1e4)
+x_vals <- seq(min(model_c$data$x), max(model_c$data$x), length.out = 1e4)
 # create the data and return
-predicted <- tibble(
+predicted_c <- tibble(
   x = x_vals,
-  y = predict(fit_b$fit, newdata = tibble(x = x_vals))
+  y = predict(model_c$fit, newdata = tibble(x = x_vals))
 )
 # plot
 ggplot(mapping = aes(x, y)) +
-  geom_jitter(aes(shape = outlier_density), data = fit_b$data) +
-  geom_line(data = predicted)
+  geom_jitter(aes(shape = outlier_density), data = model_c$data) +
+  geom_line(data = predicted_c) + 
+  ggtitle("irwls + outlier removal")

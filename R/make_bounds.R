@@ -24,7 +24,7 @@ make_bounds <- function(.func, .lower = NULL, .upper = NULL) {
     replace <- unlist(list_flatten(x))
     full[names(full) %in% names(replace)] <- replace
 
-    full
+    return(full)
   })
 }
 
