@@ -16,10 +16,10 @@
 #' @param ... Other arguments to be passed to `minpack.lm::nlsLM`, such as `control` or `weights`.
 #' @return A named list containing:
 #'  \itemize{
-#'    \item `fit`: the fitted `nlsModel` object 
+#'    \item `fit`: the fitted `nlsModel` object
 #'    \item `data`: the original data used in the fit. If `.detect_outliers` is true then column added in the format `outlier_{y_var}` will be added to indicate which points are detected as outliers.
 #'  }
-#'  
+#'
 #' @export
 #' @examples
 #' # exponential plateau
@@ -75,12 +75,10 @@ fit_model <- function(
     ...) {
   # modify data
   .data <- mutate(.data, x = !!ensym(.x_var), y = !!ensym(.y_var))
-  .data <- mutate(.data, x = as.numeric(x), y = as.numeric(y))
+  .data <- drop_na(.data, x, y)
   .data <- mutate(.data, x = as.numeric(x), y = as.numeric(y))
   .data <- relocate(.data, x, y)
 
-  .data <- drop_na(.data, x, y)
-  
   # check input
   if (is_null(.start_func) & is_null(.start_vals)) {
     stop("both start_func and start_vals provided")
@@ -203,7 +201,7 @@ fit_model <- function(
       fit_old <- fit_new
       iter <- iter + 1
     }
-    # message(str_glue("huber achieved {tol} tolerance in {iter} iterations"))
+    # message(str_glue("achieved {tol} tolerance in {iter} iterations"))
     fit <- fit_new
   }
 
@@ -275,8 +273,8 @@ fit_model <- function(
 
   # return
   if (.return_func) {
-    list(fit = final_fit, data = .data, func = .curve_func)
+    return(list(fit = final_fit, data = .data, func = .curve_func))
   } else {
-    list(fit = final_fit, data = .data)
+    return(list(fit = final_fit, data = .data))
   }
 }

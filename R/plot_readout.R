@@ -1,10 +1,10 @@
-plot_readout <- function(.data_nest, .x_var, .y_var) {
+plot_readout <- function(.data_nest, .x_var, .y_var, .conc_var) {
   # raw data
   dat_raw <- map2(
-    .x = data_nest$treatment_name,
-    .y = data_nest$concentration,
+    .x = .data_nest$treatment_name,
+    .y = .data_nest$concentration,
     .f = function(x, y) {
-      data_nest |>
+      .data_nest |>
         filter(treatment_name == x & concentration == y) |>
         select(data) |>
         unnest(cols = data) |>
@@ -23,7 +23,7 @@ plot_readout <- function(.data_nest, .x_var, .y_var) {
     .f = function(x, y) {
       fit <- data_nest |>
         filter(treatment_name == x & concentration == y) |>
-        pull(!!ensym(y_var)) |>
+        pull(!!ensym(.y_var)) |>
         map(1) |>
         pluck(1)
 
@@ -33,7 +33,7 @@ plot_readout <- function(.data_nest, .x_var, .y_var) {
 
       dat <- data_nest |>
         filter(treatment_name == x & concentration == y) |>
-        pull(!!ensym(y_var)) |>
+        pull(!!ensym(.y_var)) |>
         map(2) |>
         pluck(1)
 
@@ -60,7 +60,7 @@ plot_readout <- function(.data_nest, .x_var, .y_var) {
 
   # there may or may not be outlier_well
   # there may or may not be outlier_col
-  outlier_readout <- str_c("outlier_", y_var)
+  outlier_readout <- str_c("outlier_", .y_var)
   outlier_well <- "outlier_well"
 
   dat_raw <- dat_raw |>
@@ -113,7 +113,7 @@ plot_readout <- function(.data_nest, .x_var, .y_var) {
             shape = outlier_total
           ),
           data = dat_raw |>
-            mutate(y = !!ensym(y_var)) |>
+            mutate(y = !!ensym(.y_var)) |>
             filter(treatment_name %in% c("vehicle", treat)),
           alpha = 0,
           # size = 1
@@ -135,7 +135,7 @@ plot_readout <- function(.data_nest, .x_var, .y_var) {
                 outlier_total = TRUE
               )
             ) |>
-            mutate(y = !!ensym(y_var)) |>
+            mutate(y = !!ensym(.y_var)) |>
             mutate(outlier_total = factor(outlier_total, levels = c(TRUE, FALSE))),
           alpha = 1,
           # size = 1,
@@ -174,7 +174,7 @@ plot_readout <- function(.data_nest, .x_var, .y_var) {
         #     guide = guide_axis(position = "top")
         #   )
         # ) +
-        ggtitle(treat) + 
+        ggtitle(treat) +
         # ylab(str_c(to_sentence_case(y_var), " (\u03bcm\u00B2)")) +
         guides(
           colour = "none",
@@ -189,63 +189,32 @@ plot_readout <- function(.data_nest, .x_var, .y_var) {
             order = 2
           )
         )
-        # theme(
-        #   axis.title.x = element_text(size = 8),
-        #   axis.title.y = element_text(size = 8),
-        #   legend.box = "horizontal",
-        #   legend.location = "plot",
-        #   legend.justification = c(1, 0.85),
-        #   legend.key = element_rect(
-        #     colour = "black",
-        #     linewidth = 1 / .pt
-        #   ),
-        #   legend.key.size = unit(0.5, "cm"),
-        #   legend.title = element_text(size = 10),
-        #   panel.grid = element_line(
-        #     colour = "grey90",
-        #     linewidth = 1 / .pt
-        #   ),
-        #   panel.background = element_rect(fill = "white"),
-        #   panel.border = element_rect(
-        #     colour = "black",
-        #     fill = NA,
-        #     linewidth = 1 / .pt
-        #   ),
-        #   plot.title = element_text(size = 10),
-        #   text = element_text(size = 10)
-        # )
+      # theme(
+      #   axis.title.x = element_text(size = 8),
+      #   axis.title.y = element_text(size = 8),
+      #   legend.box = "horizontal",
+      #   legend.location = "plot",
+      #   legend.justification = c(1, 0.85),
+      #   legend.key = element_rect(
+      #     colour = "black",
+      #     linewidth = 1 / .pt
+      #   ),
+      #   legend.key.size = unit(0.5, "cm"),
+      #   legend.title = element_text(size = 10),
+      #   panel.grid = element_line(
+      #     colour = "grey90",
+      #     linewidth = 1 / .pt
+      #   ),
+      #   panel.background = element_rect(fill = "white"),
+      #   panel.border = element_rect(
+      #     colour = "black",
+      #     fill = NA,
+      #     linewidth = 1 / .pt
+      #   ),
+      #   plot.title = element_text(size = 10),
+      #   text = element_text(size = 10)
+      # )
     }
   ) |>
     set_names(unique(dat_raw$treatment_name) |> discard(.p = \(x) x == "vehicle"))
-}
-
-format_conc <- function(vec, signif = 2) {
-  vec <- as.numeric(vec)
-  map_vec(
-    .x = vec,
-    .f = function(x) {
-      x_molar <- 10^x
-      # convert to µM
-      x_micro_molar <- x_molar * 1e6
-
-      if (x_micro_molar >= 1) {
-        # for concentrations ≥ 1 µM, display in µM
-        # return(sprintf("%.2f µM", x_micro_molar))
-        if (signif == 0) {
-          return(str_c(round(x_micro_molar), " \u03bcM"))
-        } else {
-          return(str_c(format(x_micro_molar, digits = signif, nsmall = signif), " \u03bcM"))
-        }
-      } else {
-        # for concentrations < 1 µM, convert to nM
-        # return(sprintf("%.2f nM", x_nano_molar))
-        x_nano_molar <- x_micro_molar * 1000
-        if (signif == 0) {
-          return(str_c(round(x_nano_molar), " nM"))
-        } else {
-          return(str_c(format(x_nano_molar, digits = signif, nsmall = signif), " nM"))
-        }
-      }
-    }
-  )
 }

@@ -139,7 +139,6 @@ spot_data <- map(
 
 # bring together in long format
 spot_collated <- bind_rows(spot_data)
-
 spot_collated <- spot_collated |> filter(area > 2.5e4)
 
 # time
@@ -159,8 +158,8 @@ spot_collated
 
 vehicle_test <- spot_collated |> filter(treatment_name == "vehicle")
 
-vehicle_results <- fit_model(
-  .data = test,
+vehicle_results <- incur::fit_model(
+  .data = vehicle_test,
   .x_var = hours_within,
   .y_var = area,
   .curve_func = incur_models$five_param_sigmoid$curve_func,
@@ -182,6 +181,8 @@ plot_curve_fit(
 data_nest <- spot_collated |>
   nest(.by = c(concentration, treatment_name)) |>
   arrange(treatment_name, concentration)
+
+data_nest
 
 data_nest <- data_nest |>
   mutate(
@@ -205,19 +206,50 @@ data_nest <- data_nest |>
     data = map(area, 2)
   )
 
-plot_readout(
-  data_nest,
-  "hours_from",
-  "area"
+predicted_all <- pmap(
+  .l = list(
+    data = data_nest$data,
+    concentration = data_nest$concentration,
+    fit = data_nest$area |> map(1)
+  ),
+  .f = function(data, concentration, fit) {
+    df <- predict_data(.fit = fit, .lower_x = min(data$hours_within), .upper_x = max(data$hours_within))
+    df <- mutate(df, concentration = concentration)
+    df
+  }
+)
+predicted_all <- bind_rows(predicted_all)
+
+# 
+# 
+# 
+# best_fit_values <- extract_best_fit_values(
+#   data_nest = data_nest,
+#   y_var = "area"
+# )
+
+plot_models(
+  .data_list = data_nest$data,
+  .x_var = "hours_within",
+  .y_var = "area",
+  .fit_list = data_nest$area |> map(1),
+  .nest_vec = data_nest$concentration,
+  .nest_vec_name = "Concentration",
+  .colour_vector = NULL,
+  .label_vector = NULL,
+  .return_data = FALSE
 )
 
-best_fit_values <- extract_best_fit_values(
-  data_nest = data_nest,
-  y_var = "area"
-)
+.best_fit_values |> 
+  ggplot(mapping = aes(x = x, y = gr, colour = concentration)) + 
+  geom_line()
+a <- calculate_gr(.best_fit_values = predicted_all, .group = concentration, .control_name = "vehicle")
 
-best_fit_values <- calculate_gr(best_fit_values = best_fit_values)
+a |> 
+  ggplot(mapping = aes(x = x, y = gr, colour = concentration)) + 
+  geom_line()
 
+plot(a$gr ~ a$x, col = factor(a$concentration))
 plot_gr_over_time(best_fit_values = best_fit_values)
 
 gr_fit <- fit_model(
@@ -258,7 +290,7 @@ data_nest <- data_nest |> mutate(
 auc_fit <- fit_model(
   .data = data_nest,
   .x_var = "concentration", 
-  .y_var = "auc_res",
+  .y_var = "area_auc",
   .curve_func = incur_models$five_param_sigmoid_log$curve_func,
   .start_func = incur_models$five_param_sigmoid_log$start_func,
   .huber = TRUE,
@@ -269,7 +301,5 @@ plot_curve_fit(
   .data = auc_fit$data,
   .fit = auc_fit$fit,
   .x_var = concentration,
-  .y_var = auc_res
+  .y_var = area_auc
 )
-
-

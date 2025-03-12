@@ -1,46 +1,27 @@
-calculate_gr <- function(best_fit_values, cap = TRUE) {
+calculate_gr <- function(.best_fit_values, .group, .control_name, .cap = TRUE) {
+  # .best_fit_values <- predicted_all
+  
+  # groups
+  .best_fit_values <- group_by(.best_fit_values, !!ensym(.group))
+  .best_fit_values <- mutate(.best_fit_values, time_zero = first(y))
   # time zeroes
-  dat <- best_fit_values |>
-    group_by(treatment_name, concentration) |>
-    mutate(time_zero = dplyr::first(y)) %>%
-    mutate(
-      vehicle_time_zero = {
-        . |>
-          filter(treatment_name == "vehicle") |>
-          pull(time_zero)
-      }
-    )
-
+  control_time_zero <- filter(.best_fit_values, !!ensym(.group) == !!enquo(.control_name)) |> pull(time_zero) |> unique()
+  .best_fit_values <- mutate(.best_fit_values, control_time_zero = control_time_zero)
+  
   # normalised
-  dat <- dat |>
-    group_by(treatment_name, concentration) |>
-    mutate(normalised = y / time_zero) %>%
-    mutate(
-      vehicle_normalised = {
-        . |>
-          filter(treatment_name == "vehicle") |>
-          pull(normalised)
-      }
-    ) |>
-    ungroup()
-
-  dat <- dat |>
-    group_by(treatment_name, concentration) |>
-    slice_head(n = -1) |>
-    # slice_tail(n = -1) |>
-    mutate(gr = 2^((log(x = normalised, base = 2) / log(x = vehicle_normalised, base = 2))) - 1) |>
-    ungroup() |>
-    relocate(gr)
-
-  if (cap) {
-    dat <- dat |>
-      mutate(
-        gr = case_when(
-          gr > 1 ~ 1,
-          .default = gr
-        )
-      )
+  .best_fit_values <- mutate(.best_fit_values, normalised = y / time_zero)
+  control_normalised <- filter(.best_fit_values, !!ensym(.group) == !!enquo(.control_name)) |> pull(normalised)
+  .best_fit_values <- mutate(.best_fit_values, control_normalised = control_normalised)
+  
+  # calc
+  .best_fit_values <- slice_head(.best_fit_values, n = -1)
+  .best_fit_values <- mutate(.best_fit_values, gr = 2^((log2(normalised) / log2(control_normalised))) - 1)
+  
+  if (.cap) {
+    .best_fit_values <- mutate(.best_fit_values, gr = case_when(gr > 1 ~ 1, .default = gr))
   }
-
-  dat
+  
+  .best_fit_values <- ungroup(.best_fit_values)
+  
+  return(.best_fit_values)
 }
