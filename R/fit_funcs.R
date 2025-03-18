@@ -3,7 +3,7 @@
 #' @param .data A A `data.frame` or `data.frame` extension (tibble) in long format with columns `x` and `y`. 
 #' @param .curve_func A function that describes a curve/model in terms of `x`.
 #' @param .arguments A named list of arguments to be injected into the `minpack.lm::nlsLM` function.
-#' @return Either a fitted `nls` object if expression is evaluated without error, or an invisible object from class `try-error`.
+#' @return Either a fitted `nls` object if expression is evaluated without error, or an invisible object with class `try-error`.
 #' @importFrom rlang env expr
 #' @importFrom minpack.lm nlsLM
 #' 
@@ -16,7 +16,6 @@ try_fit <- function(.data, .curve_func, .arguments) {
       envir = new_env
     )
   })
-  
   return(fit)
 }
 
@@ -27,9 +26,8 @@ try_fit <- function(.data, .curve_func, .arguments) {
 #' @param .x_vals A vector of `x` values in which to search across.
 #' @param .target The target `y` value to search for.
 #' @return A list produced by `uniroot`. See page for precise details.
-#'
 #' @export
-
+#' 
 find_root_fit <- function(.fit, .x_vals, .target) {
   uniroot(
     f = function(x) predict(.fit, tibble(x)) - .target,

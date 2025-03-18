@@ -56,6 +56,7 @@ A named list containing:
 \item \code{fit}: the fitted \code{nlsModel} object.
 \item \code{data}: the original data used in the fit. If \code{.detect_outliers} is true then column added in the format \verb{outlier_\{y_var\}} will be added to indicate which points are detected as outliers.
 }
+@importFrom checkmate assert_character assert_data_frame assert_function assert_list assert_logical
 @importFrom dplyr mutate relocate
 @importFrom rlang is_null
 @importFrom tidyr drop_na

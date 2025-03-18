@@ -14,7 +14,7 @@ try_fit(.data, .curve_func, .arguments)
 \item{.arguments}{A named list of arguments to be injected into the \code{minpack.lm::nlsLM} function.}
 }
 \value{
-Either a fitted \code{nls} object if expression is evaluated without error, or an invisible object from class \code{try-error}.
+Either a fitted \code{nls} object if expression is evaluated without error, or an invisible object with class \code{try-error}.
 }
 \description{
 Try to fit a curve within a new environment. See help page on \code{rlang::exec} for background on this approach.

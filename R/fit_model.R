@@ -19,6 +19,7 @@
 #'    \item `fit`: the fitted `nlsModel` object.
 #'    \item `data`: the original data used in the fit. If `.detect_outliers` is true then column added in the format `outlier_{y_var}` will be added to indicate which points are detected as outliers.
 #'  }
+#'  @importFrom checkmate assert_character assert_data_frame assert_function assert_list assert_logical
 #'  @importFrom dplyr mutate relocate
 #'  @importFrom rlang is_null
 #'  @importFrom tidyr drop_na
@@ -64,13 +65,28 @@ fit_model <- function(.data, .x_var, .y_var, .curve_func, .start_func = NULL, .s
   # dots dots dots
   .dots <- list(...)
   
+  # asserts
+  checkmate::assert_data_frame(as.data.frame(.data))
+  checkmate::assert_character(.x_var)
+  checkmate::assert_character(.y_var)
+  checkmate::assert_function(.curve_func)
+  if (!rlang::is_null(.start_func)) checkmate::assert_function(.start_func)
+  if (!rlang::is_null(.start_vals)) checkmate::assert_list(.start_vals)
+  if (!rlang::is_null(.huber)) checkmate::assert_logical(.huber)
+  if (!rlang::is_null(.detect_outliers)) checkmate::assert_logical(.detect_outliers)
+  if (!rlang::is_null(.shared_group)) checkmate::assert_character(.shared_group)
+  if (!rlang::is_null(.shared_params)) checkmate::assert_character(.shared_params)
+  if (!rlang::is_null(.lower_bounds)) checkmate::assert_list(.lower_bounds)
+  if (!rlang::is_null(.upper_bounds)) checkmate::assert_list(.upper_bounds)
+  if (!rlang::is_null(.return_func)) checkmate::assert_logical(.return_func)
+  
   # mutate data to x and y
   .data <- dplyr::mutate(.data, x = !!rlang::ensym(.x_var), y = !!rlang::ensym(.y_var))
   .data <- tidyr::drop_na(.data, x, y)
   .data <- dplyr::mutate(.data, x = as.numeric(x), y = as.numeric(y))
   .data <- dplyr::relocate(.data, x, y)
 
-  # asserts
+  # checks
   if (rlang::is_null(.start_func) & !rlang::is_null(.detect_outliers)) {
     stop("if detecting outliers a function needs to be provided to generate starting values")
   }
@@ -92,7 +108,7 @@ fit_model <- function(.data, .x_var, .y_var, .curve_func, .start_func = NULL, .s
   }
 
   # final_arguments
-  final_arguments <- create_final_arguments(.curve_func, .start_vals, .lower_bounds, .upper_bounds, .dots)
+  final_arguments <- make_final_arguments(.curve_func, .start_vals, .lower_bounds, .upper_bounds, .dots)
 
   fit <- try_fit(.data, .curve_func, final_arguments)
 
