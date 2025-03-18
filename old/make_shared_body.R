@@ -1,11 +1,12 @@
-#' Make shared function body across arguments and individual groups.
-#'
+#' @title Make a shared function body.
+#' @description Create a shared function body across arguments and individual groups.
 #' @param .func A function for which the body is to be modified.
 #' @param .group A character vector that contains all unique grouping values.
 #' @param .params A character vector of arguments in `.func` that are to be shared across `.groups`.
-#'
-#' @return An unevaluated `call` that contains a vectorised `case_when` to modify shared parameters based on `.group` values. This can be used to then create a new function
-#'
+#' @return An unevaluated `call` that contains a vectorised `case_when` to modify shared parameters based on `.group` values. This can be used to then create a new function.
+#' @importFrom dplyr case_when
+#' @importFrom purrr map pmap
+#' @importFrom stringr str_c str_glue
 
 make_shared_body <- function(.func, .group, .params) {
   formal_arguments <- names(formals(.func))
@@ -15,19 +16,19 @@ make_shared_body <- function(.func, .group, .params) {
   individual_group_list <- rep(list(.group), length(unique_arguments))
 
   # this is not recommended
-  expression_list <- pmap(
+  expression_list <- purrr::pmap(
     .l = list(a = unique_arguments, b = individual_group_list, c = append_arguments),
     .f = function(a, b, c) {
       # this creates the case_when
       # has to be vectorized - cannot use base if
-      str_c(
-        str_glue("{a} <- case_when("),
-        str_glue("group == '{b}' ~ {c}") |> str_c(collapse = ", "),
+      stringr::str_c(
+        stringr::str_glue("{a} <- dplyr::case_when("),
+        stringr::str_glue("group == '{b}' ~ {c}") |> stringr::str_c(collapse = ", "),
         ")"
       )
     }
   )
-  expression_list <- map(expression_list, str2lang)
+  expression_list <- purrr::map(expression_list, str2lang)
 
-  as.call(c(as.name("{"), expression_list, body(.func)))
+  return(as.call(c(as.name("{"), expression_list, body(.func))))
 }

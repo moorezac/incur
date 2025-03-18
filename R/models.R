@@ -1,6 +1,3 @@
-# for each model we need two things:
-# 1. function that describes the curve in terms of x
-# 2. function with arguments x and y produces a named list for starting values
 incur_models <- list(
   exponential_growth = list(
     curve_func = function(x, y0, k) {

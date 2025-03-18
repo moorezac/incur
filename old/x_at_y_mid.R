@@ -1,5 +1,5 @@
-#' For two vectors x and y of equal length, this will find the x value where y is at it's mid point
-#'
+#' @title Find the closest x value at the midpoint of y.
+#' @description For two vectors x and y of equal length, this will find the x value where y is at it's mid point.
 #' @param .x A numeric vector
 #' @param .y A numeric vector
 #' @return The closest value for `x` that represents the midpoint of `y`.

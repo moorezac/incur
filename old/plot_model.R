@@ -6,6 +6,8 @@ plot_model <- function(
     .return_data) {
   .data <- mutate(.data, x = !!ensym(.x_var), y = !!ensym(.y_var))
 
+  all.vars(formula(.fit))
+
   # check for group
   formula_vars <- all.vars(formula(.fit))
   if ("group" %in% formula_vars) {
@@ -45,12 +47,14 @@ plot_models <- function(
   # .fit_list <- data_nest$area |> map(1)
   # .nest_vec <- data_nest$concentration
   # .nest_vec_name <- "treatment"
-  
+
   all_same <- function(x) {
-    if(!is.numeric(x)) return(length(unique(x)) == 1)
+    if (!is.numeric(x)) {
+      return(length(unique(x)) == 1)
+    }
     var(x) == 0
   }
-  
+
   if (!all_same(c(length(.data_list), length(.fit_list), length(.nest_vec)))) {
     stop("mismatch in lengths")
   }
@@ -93,28 +97,27 @@ plot_models <- function(
   # deal with outliers
   outlier_column <- str_c("outlier", rlang::as_name(enquo(.y_var)), sep = "_")
   # colour_vector <- NULL
-  
+
   if (outlier_column %in% colnames(data_collated)) {
     .shape_vector <- c(1, 16)
-    names(.shape_vector) = c("True", "False")
+    names(.shape_vector) <- c("True", "False")
     .shape_labels <- c("True", "False")
     names(.shape_labels) <- c("True", "False")
-    
+
     # add in - not sure we can set values on scale_shape with TRUE/FALSE?
     data_collated <- mutate(data_collated, !!ensym(outlier_column) := str_to_title(!!ensym(outlier_column)))
-    
+
     gg <- ggplot(mapping = aes(x, y, colour = !!ensym(.nest_vec_name), shape = !!ensym(outlier_column))) +
-      guides(shape = guide_legend(title = "Outlier", override.aes = list(alpha = 1))) + 
-      scale_shape_manual(values  = .shape_vector, labels = .shape_labels)
+      guides(shape = guide_legend(title = "Outlier", override.aes = list(alpha = 1))) +
+      scale_shape_manual(values = .shape_vector, labels = .shape_labels)
     data_predicted <- mutate(data_predicted, !!ensym(outlier_column) := "False")
-    
   } else {
     gg <- gg <- ggplot(mapping = aes(x, y, colour = !!ensym(.nest_vec_name)))
   }
 
   # plot
   gg <- gg +
-    geom_point(data = data_collated, alpha = 0.25) + 
+    geom_point(data = data_collated, alpha = 0.25) +
     geom_line(mapping = aes(group = !!ensym(.nest_vec_name)), data = data_predicted, linewidth = 1.1, colour = "black") +
     geom_line(data = data_predicted, linewidth = 1) +
     labs(x = enquo(.x_var), y = enquo(.y_var))

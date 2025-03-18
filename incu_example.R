@@ -297,6 +297,7 @@ auc_fit <- fit_model(
   .detect_outliers = FALSE
 )
 
+
 plot_curve_fit(
   .data = auc_fit$data,
   .fit = auc_fit$fit,

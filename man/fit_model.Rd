@@ -2,7 +2,7 @@
 % Please edit documentation in R/fit_model.R
 \name{fit_model}
 \alias{fit_model}
-\title{This the function used to fit}
+\title{Fit a curve with \code{incur}.}
 \usage{
 fit_model(
   .data,
@@ -28,9 +28,9 @@ fit_model(
 
 \item{.y_var}{An quoted/unquoted argument that refers to the the \code{y} value within \code{.data}.}
 
-\item{.curve_func}{A function that describes a curve/model in terms of \code{x}. See below for examples.}
+\item{.curve_func}{A function that describes a curve/model in terms of \code{x}. See \code{incur::incur_models} for common examples. Alternatively, see below for examples.}
 
-\item{.start_func}{A function with arguments \code{x} and \code{y} that returns a named list of starting values for all arguments/parameters within \code{.curv_func}. See below for examples.}
+\item{.start_func}{A function with arguments \code{x} and \code{y} that returns a named list of starting values for all arguments/parameters within \code{.curv_func}. See \code{incur::incur_models} for common examples. Alternatively, see below for example.}
 
 \item{.start_vals}{A named list of starting values for all arguments/parameters within \code{curv_func}. This cannot be used in conjunction with \code{.detect_outliers}.}
 
@@ -53,32 +53,21 @@ fit_model(
 \value{
 A named list containing:
 \itemize{
-\item \code{fit}: the fitted \code{nlsModel} object
+\item \code{fit}: the fitted \code{nlsModel} object.
 \item \code{data}: the original data used in the fit. If \code{.detect_outliers} is true then column added in the format \verb{outlier_\{y_var\}} will be added to indicate which points are detected as outliers.
 }
+@importFrom dplyr mutate relocate
+@importFrom rlang is_null
+@importFrom tidyr drop_na
 }
 \description{
-This the function used to fit
+Given a set of data, fit an curve via \code{minpack.lm} with options for shared parameters, bounds, and automated outlier detection and removal.
 }
 \examples{
 # exponential plateau
-func <- function(x, y0, ym, k) ym - (ym - y0) * exp(-k * x)
-func_start <- function(x, y) list(ym = max(y), y0 = min(y), k = 1)
 
 # fit the curve to the data
 # share y0 and k across state and force y0 > 0
-fit <- fit_model(
-  .data = Puromycin,
-  .x_var = conc,
-  .y_var = rate,
-  .curve_func = func,
-  .start_func = func_start,
-  .detect_outliers = TRUE,
-  .lower_bounds = list(y0 = 0),
-  .shared_group = state,
-  .shared_params = c("y0", "k"),
-  control = minpack.lm::nls.lm.control(maxiter = 1e3)
-)
 # create data from each group
 predicted <- map(unique(Puromycin$state), function(i) {
   # more data points = smoother curve
