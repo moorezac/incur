@@ -80,12 +80,6 @@ fit_model <- function(.data, .x_var, .y_var, .curve_func, .start_func = NULL, .s
   if (!rlang::is_null(.upper_bounds)) checkmate::assert_list(.upper_bounds)
   if (!rlang::is_null(.return_func)) checkmate::assert_logical(.return_func)
   
-  # mutate data to x and y
-  .data <- dplyr::mutate(.data, x = !!rlang::ensym(.x_var), y = !!rlang::ensym(.y_var))
-  .data <- tidyr::drop_na(.data, x, y)
-  .data <- dplyr::mutate(.data, x = as.numeric(x), y = as.numeric(y))
-  .data <- dplyr::relocate(.data, x, y)
-
   # checks
   if (rlang::is_null(.start_func) & !rlang::is_null(.detect_outliers)) {
     stop("if detecting outliers a function needs to be provided to generate starting values")
@@ -93,6 +87,12 @@ fit_model <- function(.data, .x_var, .y_var, .curve_func, .start_func = NULL, .s
   if (xor(rlang::is_null(.shared_group), rlang::is_null(.shared_params))) {
     stop("'.shared_group' and '.shared_params' need to be provided together")
   }
+  
+  # mutate data to x and y
+  .data <- dplyr::mutate(.data, x = !!rlang::ensym(.x_var), y = !!rlang::ensym(.y_var))
+  .data <- tidyr::drop_na(.data, x, y)
+  .data <- dplyr::mutate(.data, x = as.numeric(x), y = as.numeric(y))
+  .data <- dplyr::relocate(.data, x, y)
   
   # start values
   if (rlang::is_null(.start_vals)) {
