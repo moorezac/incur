@@ -4,12 +4,14 @@
 \alias{make_bounds}
 \title{Make a list of upper/lower bounds.}
 \usage{
-make_bounds(func, .lower = NULL, .upper = NULL)
+make_bounds(func, lower = NULL, upper = NULL)
 }
 \arguments{
 \item{func}{A function for which to create a list of bounds from.}
 
-\item{.lower}{A named list for which arguments in \code{func} to set the lower bounds for.}
+\item{lower}{A named list for which arguments in \code{func} to set the lower bounds for.}
+
+\item{upper}{A named list for which arguments in \code{func} to set the upper bounds for.}
 
 \item{lower_bounds}{A named list that contains the lower bounds for specified parameters. All other lower bounds will be set at \code{-Inf}.}
 

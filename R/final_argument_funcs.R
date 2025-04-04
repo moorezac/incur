@@ -19,7 +19,8 @@ make_formula <- function(func) {
 #' @title Make a list of upper/lower bounds.
 #' @description From a function and a list of lower and/or upper bounds to be set, create a named list with bounds set for all arguments in `func` as provided, with all others set to Inf/-Inf for upper/lower bounds respectively.
 #' @param func A function for which to create a list of bounds from.
-#' @param .lower A named list for which arguments in `func` to set the lower bounds for.
+#' @param lower A named list for which arguments in `func` to set the lower bounds for.
+#' @param upper A named list for which arguments in `func` to set the upper bounds for.
 #' @param lower_bounds A named list that contains the lower bounds for specified parameters. All other lower bounds will be set at `-Inf`.
 #' @param upper_bounds A named list that contains the upper bounds for specified parameters. All other upper bounds will be set at `Inf`.
 #' @return A named list of all arguments as seen in `func` with provided bounds set, and Inf/-Inf for all other upper/lower bounds respectively.
@@ -28,12 +29,12 @@ make_formula <- function(func) {
 #' @importFrom rlang is_null
 #' @importFrom stringr str_flatten_comma
 
-make_bounds <- function(func, .lower = NULL, .upper = NULL) {
+make_bounds <- function(func, lower = NULL, upper = NULL) {
   formal_arguments <- names(formals(func))
   formal_arguments <- formal_arguments[!formal_arguments %in% c("x", "group")]
   
   # if only one is supplied
-  final_list <- list(lower = .lower, upper = .upper) |> purrr::discard(rlang::is_null)
+  final_list <- list(lower = lower, upper = upper) |> purrr::discard(rlang::is_null)
   
   # check bound args are there
   purrr::iwalk(final_list, function(x, i) {
@@ -65,7 +66,7 @@ make_bounds <- function(func, .lower = NULL, .upper = NULL) {
 #' @return A named list to be injected into `minpack.lm::nlsLM`.
 #' @importFrom purrr discard list_flatten
 #' @importFrom rlang is_null
-#' 
+
 make_final_arguments <- function(curve_func, start_vals, lower_bounds = NULL, upper_bounds = NULL, dots) {
   # formula
   function_formula <- make_formula(curve_func)

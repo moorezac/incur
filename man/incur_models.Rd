@@ -10,6 +10,7 @@ A named list of length 10:
 \item{curve_func}{A function that describes a curve in terms of \code{x}}
 \item{start_func}{A function that takes in vectors \code{x} and \code{y} of equal length and produces a named list corresponding to parameters in \code{curve_func}}
 }
+}
 \usage{
 incur_models
 }
