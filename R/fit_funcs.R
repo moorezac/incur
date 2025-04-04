@@ -52,26 +52,37 @@ calculate_auc <- function(fit, lower, upper) {
   )
 }
 
+#' @title Predict data from a `nls` object over a range of set `x` vakyes
+#' @description This function can be used to predict a range of values between set points, and further set the precise number of values between said points. This assumes the `fit` object takes values in terms of `x`.
+#' @param fit A `nls` object
+#' @param lower_x The lower `x` value to predict from.
+#' @param upper_x The upper `x` value to predict from.
+#' @param group A character vector that contains each unique grouping value used in the initial fit.
+#' @param num_points How many points to predict values between `lower_x` and `upper_x`
+#' @return Either a fitted `nls` object if expression is evaluated without error, or an invisible object with class `try-error`
+#' @importFrom dplyr bind_rows
+#' @importFrom purrr map
+#' @importFrom rlang is_null
+#' @importFrom tibble tibble
+#' @export
+
 predict_data <- function(fit, lower_x, upper_x, group = NULL, num_points = 1e3) {
   # full range of x values
   x_vals <- seq(lower_x, upper_x, length.out = num_points)
-  if (!is_null(group)) {
-    # unique group values
-    data <- data |> mutate(group = !!ensym(group))
-    group_vals <- unique(data$group)
+  if (!rlang::is_null(group)) {
     # go through each and collate
-    predicted <- map(group_vals, function(i) {
-      tibble(
+    predicted <- purrr::map(group_vals, function(i) {
+      tibble::tibble(
         x = x_vals,
-        y = predict(fit, newdata = tibble(x = x_vals, group = i)),
+        y = predict(fit, newdata = tibble::tibble(x = x_vals, group = i)),
         group = i
       )
     }) |>
-      bind_rows()
+      dplyr::bind_rows()
   } else {
-    predicted <- tibble(
+    predicted <- tibble::tibble(
       x = x_vals,
-      y = predict(fit, newdata = tibble(x = x_vals))
+      y = predict(fit, newdata = tibble::tibble(x = x_vals))
     )
   }
   return(predicted)
