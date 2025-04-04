@@ -4,14 +4,14 @@
 \alias{calculate_auc}
 \title{Calculate AUC for a fitted model.}
 \usage{
-calculate_auc(.fit, .lower, .upper)
+calculate_auc(fit, lower, upper)
 }
 \arguments{
-\item{.fit}{A fitted \code{nlsLM} object.}
+\item{fit}{A fitted \code{nlsLM} object.}
 
-\item{.lower}{The lower bound of where to calculate AUC.}
+\item{lower}{The lower bound of where to calculate AUC.}
 
-\item{.upper}{The upper bound of where to calculate AUC.}
+\item{upper}{The upper bound of where to calculate AUC.}
 }
 \value{
 A list of class \code{integrate} as produced by \code{stats::integrate}.

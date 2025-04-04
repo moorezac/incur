@@ -4,16 +4,16 @@
 \alias{make_shared_start_vals}
 \title{Make a list of shared starting values.}
 \usage{
-make_shared_start_vals(.data, .start_func, .group, .params)
+make_shared_start_vals(data, start_func, group, params)
 }
 \arguments{
-\item{.data}{A dataframe or dataframe-like object.}
+\item{data}{A dataframe or dataframe-like object.}
 
-\item{.start_func}{function with arguments \code{x} and \code{y} that returns a named list of starting values.}
+\item{start_func}{function with arguments \code{x} and \code{y} that returns a named list of starting values.}
 
-\item{.group}{A character vector that contains all unique grouping values as seen in \code{.data}.}
+\item{group}{A character vector that contains all unique grouping values as seen in \code{data}.}
 
-\item{.params}{A character vector that indicates which parameter(s) are to be shared across groups.}
+\item{params}{A character vector that indicates which parameter(s) are to be shared across groups.}
 }
 \value{
 A named list of starting values for provided arguments and group combinations.

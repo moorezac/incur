@@ -4,10 +4,10 @@
 \alias{huber}
 \title{IRWLS via Huber loss function.}
 \usage{
-huber(.fit, .arguments, .iter_max = 100, .k = 1.345, .tol = 1e-06)
+huber(fit, arguments, data, curve_func, iter_max = 100, k = 1.345, tol = 1e-06)
 }
 \arguments{
-\item{.fit}{A fitted \code{nlsModel} object}
+\item{fit}{A fitted \code{nlsModel} object}
 
 \item{.iter_max}{The number of iterations to perform}
 

@@ -4,17 +4,17 @@
 \alias{make_shared_body}
 \title{Make a shared function body.}
 \usage{
-make_shared_body(.func, .group, .params)
+make_shared_body(func, group, params)
 }
 \arguments{
-\item{.func}{A function for which the body is to be modified.}
+\item{func}{A function for which the body is to be modified.}
 
-\item{.group}{A character vector that contains all unique grouping values.}
+\item{group}{A character vector that contains all unique grouping values.}
 
-\item{.params}{A character vector of arguments in \code{.func} that are to be shared across \code{.groups}.}
+\item{params}{A character vector of arguments in \code{func} that are to be shared across \code{groups}.}
 }
 \value{
-An unevaluated \code{call} that contains a vectorised \code{case_when} to modify shared parameters based on \code{.group} values. This can be used to then create a new function.
+An unevaluated \code{call} that contains a vectorised \code{case_when} to modify shared parameters based on \code{group} values. This can be used to then create a new function.
 }
 \description{
 Create a shared function body across arguments and individual groups.

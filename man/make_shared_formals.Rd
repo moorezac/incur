@@ -4,14 +4,14 @@
 \alias{make_shared_formals}
 \title{Make shared function formals across arguments and individual groups.}
 \usage{
-make_shared_formals(.func, .group, .params)
+make_shared_formals(func, group, params)
 }
 \arguments{
-\item{.func}{A function for which arguments are to be modified.}
+\item{func}{A function for which arguments are to be modified.}
 
-\item{.group}{A character vector that contains all unique grouping values.}
+\item{group}{A character vector that contains all unique grouping values.}
 
-\item{.params}{A character vector of arguments in \code{.func} that are to be shared across \code{.groups}.}
+\item{params}{A character vector of arguments in \code{func} that are to be shared across \code{groups}.}
 }
 \value{
 An \code{pairlist} object that that can be used to create a new function

@@ -4,13 +4,13 @@
 \alias{auto_convert_numerics}
 \title{Automatically converted character vectors to numerics across a dataframe/tibble.}
 \usage{
-auto_convert_numerics(.df)
+auto_convert_numerics(df)
 }
 \arguments{
-\item{.df}{A dataframe or dataframe-like object.}
+\item{df}{A dataframe or dataframe-like object.}
 }
 \value{
-The original \code{.df} with character columns converted to integer/numeric.
+The original \code{df} with character columns converted to integer/numeric.
 }
 \description{
 Automatically converted character vectors to numerics across a dataframe/tibble.

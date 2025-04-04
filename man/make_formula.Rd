@@ -4,10 +4,10 @@
 \alias{make_formula}
 \title{Make a formula expression from a function}
 \usage{
-make_formula(.func)
+make_formula(func)
 }
 \arguments{
-\item{.func}{A function that describes a curve in terms of \code{x} and individual curve parameters.}
+\item{func}{A function that describes a curve in terms of \code{x} and individual curve parameters.}
 }
 \value{
 A language object in the form of \code{y ~ f()}

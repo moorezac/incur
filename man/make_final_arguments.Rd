@@ -5,17 +5,17 @@
 \title{Run the complete final argument pipeline.}
 \usage{
 make_final_arguments(
-  .curve_func,
-  .start_vals,
-  .lower_bounds = NULL,
-  .upper_bounds = NULL,
-  .dots
+  curve_func,
+  start_vals,
+  lower_bounds = NULL,
+  upper_bounds = NULL,
+  dots
 )
 }
 \arguments{
-\item{.curve_func}{A function that describes a curve/model in terms of \code{x}.}
+\item{curve_func}{A function that describes a curve/model in terms of \code{x}.}
 
-\item{.start_vals}{A named list of starting values for all arguments/parameters within \code{curv_func}.}
+\item{start_vals}{A named list of starting values for all arguments/parameters within \code{curv_func}.}
 }
 \value{
 A named list to be injected into \code{minpack.lm::nlsLM}.

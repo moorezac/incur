@@ -5,48 +5,48 @@
 \title{Fit a curve with \code{incur}.}
 \usage{
 fit_model(
-  .data,
-  .x_var,
-  .y_var,
-  .curve_func,
-  .start_func = NULL,
-  .start_vals = NULL,
-  .huber = FALSE,
-  .detect_outliers = FALSE,
-  .shared_group = NULL,
-  .shared_params = NULL,
-  .lower_bounds = NULL,
-  .upper_bounds = NULL,
-  .return_func = FALSE,
+  data,
+  x_var,
+  y_var,
+  curve_func,
+  start_func = NULL,
+  start_vals = NULL,
+  huber = FALSE,
+  detect_outliers = FALSE,
+  shared_group = NULL,
+  shared_params = NULL,
+  lower_bounds = NULL,
+  upper_bounds = NULL,
+  return_func = FALSE,
   ...
 )
 }
 \arguments{
-\item{.data}{A \code{data.frame} or \code{data.frame} extension (tibble) in long format.}
+\item{data}{A \code{data.frame} or \code{data.frame} extension (tibble) in long format.}
 
-\item{.x_var}{An quoted/unquoted argument that refers to the the \code{x} value within \code{.data}.}
+\item{x_var}{An string that refers to the the \code{x} value within \code{data}.}
 
-\item{.y_var}{An quoted/unquoted argument that refers to the the \code{y} value within \code{.data}.}
+\item{y_var}{An qstring that refers to the the \code{y} value within \code{data}.}
 
-\item{.curve_func}{A function that describes a curve/model in terms of \code{x}. See \code{incur::incur_models} for common examples. Alternatively, see below for examples.}
+\item{curve_func}{A function that describes a curve/model in terms of \code{x}. See \code{incur::incur_models} for common examples. Alternatively, see below for examples.}
 
-\item{.start_func}{A function with arguments \code{x} and \code{y} that returns a named list of starting values for all arguments/parameters within \code{.curv_func}. See \code{incur::incur_models} for common examples. Alternatively, see below for example.}
+\item{start_func}{A function with arguments \code{x} and \code{y} that returns a named list of starting values for all arguments/parameters within \code{.curv_func}. See \code{incur::incur_models} for common examples. Alternatively, see below for example.}
 
-\item{.start_vals}{A named list of starting values for all arguments/parameters within \code{curv_func}. This cannot be used in conjunction with \code{.detect_outliers}.}
+\item{start_vals}{A named list of starting values for all arguments/parameters within \code{curv_func}. This cannot be used in conjunction with \code{detect_outliers}.}
 
-\item{.huber}{Perform iterative reweighted least squares non-linear regression using the Huber loss function.}
+\item{huber}{Perform iterative reweighted least squares non-linear regression using the Huber loss function.}
 
-\item{.detect_outliers}{Boolean to indicate whether to filter outliers as described in Motulsky and Brown (2006). It is highly recommended that the \code{.huber} argument is set to true in order to start with "robust" regression.}
+\item{detect_outliers}{Boolean to indicate whether to filter outliers as described in Motulsky and Brown (2006). It is highly recommended that the \code{huber} argument is set to true in order to start with "robust" regression.}
 
-\item{.shared_group}{For nested fits (shared parameters), the quoted/unquoted argument for the column in \code{.data} that refers to individual groups to share fitted parameters.}
+\item{shared_group}{For nested fits (shared parameters), a string for the column in \code{data} that refers to individual groups to share fitted parameters.}
 
-\item{.shared_params}{For nested fits (shared parameters), a character vector that indicates which parameter(s) in \code{.curve_func} are to be shared across groups.}
+\item{shared_params}{For nested fits (shared parameters), a character vector that indicates which parameter(s) in \code{curve_func} are to be shared across groups.}
 
-\item{.lower_bounds}{A named list that contains the lower bounds for specified parameters. All other lower bounds will be set at \code{-Inf}.}
+\item{lower_bounds}{A named list that contains the lower bounds for specified parameters. All other lower bounds will be set at \code{-Inf}.}
 
-\item{.upper_bounds}{A named list that contains the upper bounds for specified parameters. All other upper bounds will be set at \code{Inf}.}
+\item{upper_bounds}{A named list that contains the upper bounds for specified parameters. All other upper bounds will be set at \code{Inf}.}
 
-\item{.return_func}{For nested fits (shared parameters), a boolean to indicate whether to return a modified \code{.curve_func} used in this process.}
+\item{return_func}{For nested fits (shared parameters), a boolean to indicate whether to return a modified \code{curve_func} used in this process.}
 
 \item{...}{Other arguments to be passed to \code{minpack.lm::nlsLM}, such as \code{control} or \code{weights}.}
 }
@@ -54,7 +54,7 @@ fit_model(
 A named list containing:
 \itemize{
 \item \code{fit}: the fitted \code{nlsModel} object.
-\item \code{data}: the original data used in the fit. If \code{.detect_outliers} is true then column added in the format \verb{outlier_\{y_var\}} will be added to indicate which points are detected as outliers.
+\item \code{data}: the original data used in the fit. If \code{detect_outliers} is true then column added in the format \verb{outlier_\{y_var\}} will be added to indicate which points are detected as outliers.
 }
 @importFrom checkmate assert_character assert_data_frame assert_function assert_list assert_logical
 @importFrom dplyr mutate relocate

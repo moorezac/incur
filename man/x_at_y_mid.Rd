@@ -4,12 +4,12 @@
 \alias{x_at_y_mid}
 \title{Find the closest x value at the midpoint of y.}
 \usage{
-x_at_y_mid(.x, .y)
+x_at_y_mid(x, y)
 }
 \arguments{
-\item{.x}{A numeric vector}
+\item{x}{A numeric vector}
 
-\item{.y}{A numeric vector}
+\item{y}{A numeric vector}
 }
 \value{
 The closest value for \code{x} that represents the midpoint of \code{y}.

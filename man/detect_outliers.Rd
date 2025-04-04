@@ -5,41 +5,41 @@
 \title{Run the complete final argument pipeline.}
 \usage{
 detect_outliers(
-  .data,
-  .x_var,
-  .y_var,
-  .fit,
-  .curve_func,
-  .start_func,
-  .upper_bounds,
-  .lower_bounds,
-  .dots
+  data,
+  x_var,
+  y_var,
+  fit,
+  curve_func,
+  start_func,
+  upper_bounds,
+  lower_bounds,
+  dots
 )
 }
 \arguments{
-\item{.data}{A \code{data.frame} or \code{data.frame} extension (tibble) in long format.}
+\item{data}{A \code{data.frame} or \code{data.frame} extension (tibble) in long format.}
 
-\item{.x_var}{An quoted/unquoted argument that refers to the the \code{x} value within \code{.data}.}
+\item{x_var}{An quoted/unquoted argument that refers to the the \code{x} value within \code{data}.}
 
-\item{.y_var}{An quoted/unquoted argument that refers to the the \code{y} value within \code{.data}.}
+\item{y_var}{An quoted/unquoted argument that refers to the the \code{y} value within \code{data}.}
 
-\item{.fit}{A fitted \code{nls} object.}
+\item{fit}{A fitted \code{nls} object.}
 
-\item{.curve_func}{A function that describes a curve/model in terms of \code{x}. See \code{incur::incur_models} for common examples. Alternatively, see below for examples.}
+\item{curve_func}{A function that describes a curve/model in terms of \code{x}. See \code{incur::incur_models} for common examples. Alternatively, see below for examples.}
 
-\item{.start_func}{A function with arguments \code{x} and \code{y} that returns a named list of starting values for all arguments/parameters within \code{.curv_func}. See \code{incur::incur_models} for common examples. Alternatively, see below for example.}
+\item{start_func}{A function with arguments \code{x} and \code{y} that returns a named list of starting values for all arguments/parameters within \code{.curv_func}. See \code{incur::incur_models} for common examples. Alternatively, see below for example.}
 
-\item{.upper_bounds}{A named list that contains the upper bounds for specified parameters. All other upper bounds will be set at \code{Inf}.}
+\item{upper_bounds}{A named list that contains the upper bounds for specified parameters. All other upper bounds will be set at \code{Inf}.}
 
-\item{.lower_bounds}{A named list that contains the lower bounds for specified parameters. All other lower bounds will be set at \code{-Inf}.}
+\item{lower_bounds}{A named list that contains the lower bounds for specified parameters. All other lower bounds will be set at \code{-Inf}.}
 
-\item{.dots}{Other arguments to be passed to \code{minpack.lm::nlsLM}, such as \code{control} or \code{weights}.}
+\item{dots}{Other arguments to be passed to \code{minpack.lm::nlsLM}, such as \code{control} or \code{weights}.}
 }
 \value{
 An list data contains in order:
 \itemize{
 \item A fitted \code{nls} object.
-\item Original \code{.data} with modified columns to represent outliers
+\item Original \code{data} with modified columns to represent outliers
 }
 @importFrom dplyr filter if_else mutate pull relocate row_number
 @importFrom purrr map_vec

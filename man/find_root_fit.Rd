@@ -4,14 +4,14 @@
 \alias{find_root_fit}
 \title{A function that finds the value of \code{x} for a fitted \code{nlsModel} for a targeted \code{y} value}
 \usage{
-find_root_fit(.fit, .x_vals, .target)
+find_root_fit(fit, x_vals, target)
 }
 \arguments{
-\item{.fit}{A fitted \code{nlsLM} object.}
+\item{fit}{A fitted \code{nlsLM} object.}
 
-\item{.x_vals}{A vector of \code{x} values in which to search across.}
+\item{x_vals}{A vector of \code{x} values in which to search across.}
 
-\item{.target}{The target \code{y} value to search for.}
+\item{target}{The target \code{y} value to search for.}
 }
 \value{
 A list produced by \code{uniroot}. See page for precise details.

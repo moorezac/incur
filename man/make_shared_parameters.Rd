@@ -5,25 +5,25 @@
 \title{Run the complete shared parameters pipeline .}
 \usage{
 make_shared_parameters(
-  .data,
-  .shared_params,
-  .shared_group,
-  .curve_func,
-  .start_func
+  data,
+  shared_params,
+  shared_group,
+  curve_func,
+  start_func
 )
 }
 \arguments{
-\item{.func}{A function for which arguments are to be modified.}
+\item{func}{A function for which arguments are to be modified.}
 
-\item{.group}{A character vector that contains all unique grouping values.}
+\item{group}{A character vector that contains all unique grouping values.}
 
-\item{.params}{A character vector of arguments in \code{.func} that are to be shared across \code{.groups}.}
+\item{params}{A character vector of arguments in \code{func} that are to be shared across \code{groups}.}
 }
 \value{
 An list data contains in order:
 \itemize{
-\item Original \code{.data} with modified columns to represent groups.
-\item A custom \code{.curve_func} with modified formals and body.
+\item Original \code{data} with modified columns to represent groups.
+\item A custom \code{curve_func} with modified formals and body.
 \item A named list of new starting values for each group.
 }
 }

@@ -4,14 +4,14 @@
 \alias{try_fit}
 \title{Attempt to fit a curve via \code{minpack.lm}}
 \usage{
-try_fit(.data, .curve_func, .arguments)
+try_fit(data, curve_func, arguments)
 }
 \arguments{
-\item{.data}{A A \code{data.frame} or \code{data.frame} extension (tibble) in long format with columns \code{x} and \code{y}.}
+\item{data}{A A \code{data.frame} or \code{data.frame} extension (tibble) in long format with columns \code{x} and \code{y}.}
 
-\item{.curve_func}{A function that describes a curve/model in terms of \code{x}.}
+\item{curve_func}{A function that describes a curve/model in terms of \code{x}.}
 
-\item{.arguments}{A named list of arguments to be injected into the \code{minpack.lm::nlsLM} function.}
+\item{arguments}{A named list of arguments to be injected into the \code{minpack.lm::nlsLM} function.}
 }
 \value{
 Either a fitted \code{nls} object if expression is evaluated without error, or an invisible object with class \code{try-error}.

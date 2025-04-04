@@ -4,7 +4,7 @@
 \alias{calculate_gr}
 \title{Calculate GR values.}
 \usage{
-calculate_gr(.best_fit_values, .group, .control_name, .cap = TRUE)
+calculate_gr(.best_fit_values, group, .control_name, .cap = TRUE)
 }
 \arguments{
 \item{.best_fit_values}{A fitted \code{nlsLM} object.}
