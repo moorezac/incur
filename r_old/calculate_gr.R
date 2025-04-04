@@ -8,19 +8,21 @@
 #' @importFrom rlang enquo ensym
 #' @export
 
-calculate_gr <- function(.best_fit_values, group, .control_name, .cap = TRUE) {
+calculate_gr <- function(.best_fit_values, .group, .control_name, .cap = TRUE) {
+  # .best_fit_values <- predicted_all
+
   # groups
-  .best_fit_values <- dplyr::group_by(.best_fit_values, !!rlang::ensym(group))
+  .best_fit_values <- dplyr::group_by(.best_fit_values, !!rlang::ensym(.group))
   .best_fit_values <- dplyr::mutate(.best_fit_values, time_zero = dplyr::first(y))
   # time zeroes
-  control_time_zero <- dplyr::filter(.best_fit_values, !!rlang::ensym(group) == !!rlang::enquo(.control_name)) |>
+  control_time_zero <- dplyr::filter(.best_fit_values, !!rlang::ensym(.group) == !!rlang::enquo(.control_name)) |>
     dplyr::pull(time_zero) |>
     unique()
   .best_fit_values <- dplyr::mutate(.best_fit_values, control_time_zero = control_time_zero)
 
   # normalised
   .best_fit_values <- dplyr::mutate(.best_fit_values, normalised = y / time_zero)
-  control_normalised <- dplyr::filter(.best_fit_values, !!rlang::ensym(group) == !!rlang::enquo(.control_name)) |> dplyr::pull(normalised)
+  control_normalised <- dplyr::filter(.best_fit_values, !!rlang::ensym(.group) == !!rlang::enquo(.control_name)) |> dplyr::pull(normalised)
   .best_fit_values <- dplyr::mutate(.best_fit_values, control_normalised = control_normalised)
 
   # calc

@@ -7,8 +7,8 @@
 # theme_incur <- theme(
 #   axis.line = element_line(linewidth = linewidth / .pt),
 #   axis.text = element_text(size = font_small),
-#   axis.titlex = element_text(size = font_size),
-#   axis.titley = element_text(size = font_size),
+#   axis.title.x = element_text(size = font_size),
+#   axis.title.y = element_text(size = font_size),
 #   # legend.box = "horizontal",
 #   # legend.location = "plot",
 #   # legend.justification = c(1, 1),

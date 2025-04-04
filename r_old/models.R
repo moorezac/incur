@@ -49,9 +49,8 @@ incur_models <- list(
     }
   ),
   biphasic_four_param_sigmoid = list(
-    curve_func = function(x, top, bottom, frac, ec50_1, nh1, ec50_2, nh2) {
-      # bottom + (top - bottom) * frac / (1 + (ec50_1 / x)^slope_1) + (top - bottom) * (1 - frac) / (1 + (ec50_2 / x)^slope_2)
-      bottom + (top - bottom) * frac / (1 + (ec50_1 / x)^nh1) + (top - bottom) * (1 - frac) / (1 + (ec50_2 / x)^nh2)
+    curve_func = function(x, top, bottom, frac, ec50_1, slope_1, ec50_2, slope_2) {
+      bottom + (top - bottom) * frac / (1 + (ec50_1 / x)^slope_1) + (top - bottom) * (1 - frac) / (1 + (ec50_2 / x)^slope_2)
     },
     start_func = function(x, y) {
       list(
@@ -130,5 +129,3 @@ incur_models <- list(
     }
   )
 )
-
-# base::save(incur_models, file = "data/incur_models.rda")

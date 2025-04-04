@@ -1,20 +1,20 @@
 plot_model <- function(
-    data,
-    x_var,
-    y_var,
-    fit,
-    return_data) {
-  data <- mutate(data, x = !!ensym(x_var), y = !!ensym(y_var))
+    .data,
+    .x_var,
+    .y_var,
+    .fit,
+    .return_data) {
+  .data <- mutate(.data, x = !!ensym(.x_var), y = !!ensym(.y_var))
   
-  all.vars(formula(fit))
+  all.vars(formula(.fit))
   
   # check for group
-  formula_vars <- all.vars(formula(fit))
+  formula_vars <- all.vars(formula(.fit))
   if ("group" %in% formula_vars) {
-    predicted <- predict_data(fit, lower_x = min(data$x), max(data$x), group = "group")
+    predicted <- predict_data(.fit, .lower_x = min(.data$x), max(.data$x), .group = "group")
     gg <- ggplot(mapping = aes(x, y, colour = group))
   } else {
-    predicted <- predict_data(fit, lower_x = min(data$x), max(data$x))
+    predicted <- predict_data(.fit, .lower_x = min(.data$x), max(.data$x))
     gg <- ggplot(mapping = aes(x, y))
   }
   
@@ -24,29 +24,29 @@ plot_model <- function(
   
   # plot
   gg <- gg +
-    geom_point(data = data) +
+    geom_point(data = .data) +
     geom_line(data = predicted) +
-    labs(x = enquo(x_var), y = enquo(y_var))
+    labs(x = enquo(.x_var), y = enquo(.y_var))
   
   return(gg)
 }
 
 plot_models <- function(
-    data_list,
-    x_var,
-    y_var,
-    fit_list,
-    nest_vec,
-    nest_vec_name,
-    colour_vector = NULL,
-    label_vector = NULL,
-    return_data = FALSE) {
-  # data_list <- data_nest$data
-  # x_var <- "hours_within"
-  # y_var <- "area"
-  # fit_list <- data_nest$area |> map(1)
-  # nest_vec <- data_nest$concentration
-  # nest_vec_name <- "treatment"
+    .data_list,
+    .x_var,
+    .y_var,
+    .fit_list,
+    .nest_vec,
+    .nest_vec_name,
+    .colour_vector = NULL,
+    .label_vector = NULL,
+    .return_data = FALSE) {
+  # .data_list <- data_nest$data
+  # .x_var <- "hours_within"
+  # .y_var <- "area"
+  # .fit_list <- data_nest$area |> map(1)
+  # .nest_vec <- data_nest$concentration
+  # .nest_vec_name <- "treatment"
   
   all_same <- function(x) {
     if (!is.numeric(x)) {
@@ -55,21 +55,21 @@ plot_models <- function(
     var(x) == 0
   }
   
-  if (!all_same(c(length(data_list), length(fit_list), length(nest_vec)))) {
+  if (!all_same(c(length(.data_list), length(.fit_list), length(.nest_vec)))) {
     stop("mismatch in lengths")
   }
   
-  data_list <- map2(data_list, nest_vec, function(a, b) {
+  .data_list <- map2(.data_list, .nest_vec, function(a, b) {
     # add in x and y
-    a <- mutate(a, x = !!ensym(x_var), y = !!ensym(y_var))
+    a <- mutate(a, x = !!ensym(.x_var), y = !!ensym(.y_var))
     # add in names
-    a <- mutate(a, !!ensym(nest_vec_name) := b)
-    a <- relocate(a, !!ensym(nest_vec_name), .after = y)
+    a <- mutate(a, !!ensym(.nest_vec_name) := b)
+    a <- relocate(a, !!ensym(.nest_vec_name), .after = y)
     return(a)
   })
-  data_collated <- bind_rows(data_list)
+  data_collated <- bind_rows(.data_list)
   
-  data_predicted <- map2(data_list, fit_list, function(a, b) {
+  data_predicted <- map2(.data_list, .fit_list, function(a, b) {
     # check for group
     formula_vars <- all.vars(formula(b))
     if ("group" %in% formula_vars) {
@@ -77,16 +77,16 @@ plot_models <- function(
     }
     
     # predicted data
-    predicted <- predict_data(b, lower_x = min(a$x), max(a$x))
+    predicted <- predict_data(b, .lower_x = min(a$x), max(a$x))
     # extract the nested_vec value and add in
-    nested_vec <- pull(a, !!ensym(nest_vec_name))
-    predicted <- mutate(predicted, !!ensym(nest_vec_name) := unique(nested_vec))
+    nested_vec <- pull(a, !!ensym(.nest_vec_name))
+    predicted <- mutate(predicted, !!ensym(.nest_vec_name) := unique(nested_vec))
     
     return(predicted)
   })
   data_predicted <- bind_rows(data_predicted)
   
-  if (return_data) {
+  if (.return_data) {
     return(list(collated = data_collated, predicted = data_predicted))
   }
   
@@ -95,7 +95,7 @@ plot_models <- function(
   
   
   # deal with outliers
-  outlier_column <- str_c("outlier", rlang::as_name(enquo(y_var)), sep = "_")
+  outlier_column <- str_c("outlier", rlang::as_name(enquo(.y_var)), sep = "_")
   # colour_vector <- NULL
   
   if (outlier_column %in% colnames(data_collated)) {
@@ -107,39 +107,39 @@ plot_models <- function(
     # add in - not sure we can set values on scale_shape with TRUE/FALSE?
     data_collated <- mutate(data_collated, !!ensym(outlier_column) := str_to_title(!!ensym(outlier_column)))
     
-    gg <- ggplot(mapping = aes(x, y, colour = !!ensym(nest_vec_name), shape = !!ensym(outlier_column))) +
+    gg <- ggplot(mapping = aes(x, y, colour = !!ensym(.nest_vec_name), shape = !!ensym(outlier_column))) +
       guides(shape = guide_legend(title = "Outlier", override.aes = list(alpha = 1))) +
       scale_shape_manual(values = .shape_vector, labels = .shape_labels)
     data_predicted <- mutate(data_predicted, !!ensym(outlier_column) := "False")
   } else {
-    gg <- gg <- ggplot(mapping = aes(x, y, colour = !!ensym(nest_vec_name)))
+    gg <- gg <- ggplot(mapping = aes(x, y, colour = !!ensym(.nest_vec_name)))
   }
   
   # plot
   gg <- gg +
     geom_point(data = data_collated, alpha = 0.25) +
-    geom_line(mapping = aes(group = !!ensym(nest_vec_name)), data = data_predicted, linewidth = 1.1, colour = "black") +
+    geom_line(mapping = aes(group = !!ensym(.nest_vec_name)), data = data_predicted, linewidth = 1.1, colour = "black") +
     geom_line(data = data_predicted, linewidth = 1) +
-    labs(x = enquo(x_var), y = enquo(y_var))
+    labs(x = enquo(.x_var), y = enquo(.y_var))
   
-  if (!is_null(label_vector) & !is_null(colour_vector)) {
-    gg <- gg + scale_colour_manual(values = colour_vector, labels = label_vector)
+  if (!is_null(.label_vector) & !is_null(.colour_vector)) {
+    gg <- gg + scale_colour_manual(values = .colour_vector, labels = .label_vector)
   } else {
-    if (!is_null(colour_vector)) {
-      gg <- gg + scale_colour_manual(values = colour_vector)
+    if (!is_null(.colour_vector)) {
+      gg <- gg + scale_colour_manual(values = .colour_vector)
     } else {
-      number_models <- length(fit_list)
-      colour_vector <- case_when(
+      number_models <- length(.fit_list)
+      .colour_vector <- case_when(
         between(number_models, 1, 9) ~ set_1[1:number_models],
         between(number_models, 10, 12) ~ set_3[1:number_models],
         .default = scales::hue_pal()(number_models)
       )
-      names(colour_vector) <- nest_vec
+      names(.colour_vector) <- .nest_vec
       
-      if (!is_null(label_vector)) {
-        gg <- gg + scale_colour_manual(values = colour_vector, labels = label_vector)
+      if (!is_null(.label_vector)) {
+        gg <- gg + scale_colour_manual(values = .colour_vector, labels = .label_vector)
       } else {
-        gg <- gg + scale_colour_manual(values = colour_vector)
+        gg <- gg + scale_colour_manual(values = .colour_vector)
       }
     }
   }
@@ -149,13 +149,13 @@ plot_models <- function(
   return(gg)
 }
 
-plot_readout <- function(data_nest, x_var, y_var, .conc_var) {
+plot_readout <- function(.data_nest, .x_var, .y_var, .conc_var) {
   # raw data
   dat_raw <- map2(
-    x = data_nest$treatment_name,
-    y = data_nest$concentration,
+    .x = .data_nest$treatment_name,
+    .y = .data_nest$concentration,
     .f = function(x, y) {
-      data_nest |>
+      .data_nest |>
         filter(treatment_name == x & concentration == y) |>
         select(data) |>
         unnest(cols = data) |>
@@ -169,12 +169,12 @@ plot_readout <- function(data_nest, x_var, y_var, .conc_var) {
   
   # curve data
   dat_pred <- map2(
-    x = data_nest$treatment_name,
-    y = data_nest$concentration,
+    .x = data_nest$treatment_name,
+    .y = data_nest$concentration,
     .f = function(x, y) {
       fit <- data_nest |>
         filter(treatment_name == x & concentration == y) |>
-        pull(!!ensym(y_var)) |>
+        pull(!!ensym(.y_var)) |>
         map(1) |>
         pluck(1)
       
@@ -184,7 +184,7 @@ plot_readout <- function(data_nest, x_var, y_var, .conc_var) {
       
       dat <- data_nest |>
         filter(treatment_name == x & concentration == y) |>
-        pull(!!ensym(y_var)) |>
+        pull(!!ensym(.y_var)) |>
         map(2) |>
         pluck(1)
       
@@ -211,7 +211,7 @@ plot_readout <- function(data_nest, x_var, y_var, .conc_var) {
   
   # there may or may not be outlier_well
   # there may or may not be outlier_col
-  outlier_readout <- str_c("outlier_", y_var)
+  outlier_readout <- str_c("outlier_", .y_var)
   outlier_well <- "outlier_well"
   
   dat_raw <- dat_raw |>
@@ -229,7 +229,7 @@ plot_readout <- function(data_nest, x_var, y_var, .conc_var) {
   }
   
   map(
-    x = unique(dat_raw$treatment_name) |> discard(.p = \(x) x == "vehicle"),
+    .x = unique(dat_raw$treatment_name) |> discard(.p = \(x) x == "vehicle"),
     .f = function(treat) {
       # use pred to construct the legend
       concs_total <- data_nest |>
@@ -264,7 +264,7 @@ plot_readout <- function(data_nest, x_var, y_var, .conc_var) {
             shape = outlier_total
           ),
           data = dat_raw |>
-            mutate(y = !!ensym(y_var)) |>
+            mutate(y = !!ensym(.y_var)) |>
             filter(treatment_name %in% c("vehicle", treat)),
           alpha = 0,
           # size = 1
@@ -286,7 +286,7 @@ plot_readout <- function(data_nest, x_var, y_var, .conc_var) {
                 outlier_total = TRUE
               )
             ) |>
-            mutate(y = !!ensym(y_var)) |>
+            mutate(y = !!ensym(.y_var)) |>
             mutate(outlier_total = factor(outlier_total, levels = c(TRUE, FALSE))),
           alpha = 1,
           # size = 1,
@@ -341,8 +341,8 @@ plot_readout <- function(data_nest, x_var, y_var, .conc_var) {
           )
         )
       # theme(
-      #   axis.titlex = element_text(size = 8),
-      #   axis.titley = element_text(size = 8),
+      #   axis.title.x = element_text(size = 8),
+      #   axis.title.y = element_text(size = 8),
       #   legend.box = "horizontal",
       #   legend.location = "plot",
       #   legend.justification = c(1, 0.85),
@@ -373,7 +373,7 @@ plot_readout <- function(data_nest, x_var, y_var, .conc_var) {
 plot_gr_over_time <- function(best_fit_values) {
   # best_fit_values <- best_fit_values_area
   map(
-    x = unique(best_fit_values$treatment_name) |> discard(.p = \(x) x == "vehicle"),
+    .x = unique(best_fit_values$treatment_name) |> discard(.p = \(x) x == "vehicle"),
     .f = function(treat) {
       # use pred to construct the legend
       concs_total <- data_nest |>
@@ -443,8 +443,8 @@ plot_gr_over_time <- function(best_fit_values) {
       #   )
       # ) +
       # theme(
-      #   axis.titlex = element_text(size = 8),
-      #   axis.titley = element_text(size = 8),
+      #   axis.title.x = element_text(size = 8),
+      #   axis.title.y = element_text(size = 8),
       #   legend.box = "horizontal",
       #   legend.location = "plot",
       #   legend.justification = c(1, 0.85),
