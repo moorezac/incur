@@ -1,46 +1,66 @@
-plot_model <- function(
-    data,
-    x_var,
-    y_var,
-    fit,
-    return_data) {
-  data <- mutate(data, x = !!ensym(x_var), y = !!ensym(y_var))
-  
-  all.vars(formula(fit))
+#' @title Plot a model fitted with `incur`.
+#' @description Plot a model fitted with `incur`.
+#' @param data A `data.frame` or `data.frame` extension (tibble) in long format.
+#' @param x_var An string that refers to the the `x` value within `data`.
+#' @param y_var An qstring that refers to the the `y` value within `data`.
+#' @param fit The fitted `nlsModel` object.
+#' @param return_data Whether to instead return the original and predicted data to be plot elsewhere.
+#' @return A `ggplot` object.
+#' @importFrom dplyr mutate
+#' @importFrom ggplot2 geom_line geom_point ggplot labs
+#' @importFrom rlang as_name enquo ensym
+#' @export
+#' 
+plot_model <- function(data, x_var, y_var, fit, return_data = FALSE) {
+  # justin
+  data <- dplyr::mutate(data, x = !!rlang::ensym(x_var), y = !!rlang::ensym(y_var))
   
   # check for group
   formula_vars <- all.vars(formula(fit))
   if ("group" %in% formula_vars) {
-    predicted <- predict_data(fit, lower_x = min(data$x), max(data$x), group = "group")
-    gg <- ggplot(mapping = aes(x, y, colour = group))
+    group_vec <- unique(data$group)
+    predicted <- predict_data(fit, min(data$x), max(data$x), group = group_vec)
+    # gg <- ggplot2::ggplot(mapping = aes(x, y, colour = group))
+    use_colour <- TRUE
   } else {
-    predicted <- predict_data(fit, lower_x = min(data$x), max(data$x))
-    gg <- ggplot(mapping = aes(x, y))
+    predicted <- predict_data(fit, min(data$x), max(data$x))
+    # gg <- ggplot2::ggplot(mapping = aes(x, y))
+    use_colour <- FALSE
   }
   
+  # check for outliers
+  outlier_column <- stringr::str_c("outlier", rlang::as_name(rlang::enquo(y_var)), sep = "_")
+  if (outlier_column %in% colnames(data)) {
+    use_shape <- TRUE
+  } else {
+    use_shape <- FALSE
+  }
+  
+  # aes
+  map_point <- map_line <- aes(x = x, y = y)
+  if (use_colour) {
+    map_point$colour <- as.name(group)
+    map_line$colour <- as.name(group)
+  }
+  if (use_shape) {
+    map_point$shape <- as.name(outlier_column)
+  }
+  
+  # if wanted to plot elsewhere
   if (return_data) {
-    return(list(collated = data_collated, predicted = data_predicted))
+    return(list(data = data, predicted = predicted))
   }
   
   # plot
-  gg <- gg +
-    geom_point(data = data) +
-    geom_line(data = predicted) +
-    labs(x = enquo(x_var), y = enquo(y_var))
-  
+  gg <- ggplot2::ggplot() +
+    ggplot2::geom_point(data = data, mapping = map_point, alpha = 0.25) +
+    ggplot2::geom_line(data = predicted, mapping = map_line) +
+    ggplot2::labs(x = rlang::enquo(x_var), y = rlang::enquo(y_var))
+
   return(gg)
 }
 
-plot_models <- function(
-    data_list,
-    x_var,
-    y_var,
-    fit_list,
-    nest_vec,
-    nest_vec_name,
-    colour_vector = NULL,
-    label_vector = NULL,
-    return_data = FALSE) {
+plot_models <- function(data_list, x_var, y_var, fit_list, nest_vec, nest_vec_name, colour_vector = NULL, label_vector = NULL, return_data = FALSE) {
   # data_list <- data_nest$data
   # x_var <- "hours_within"
   # y_var <- "area"

@@ -19,7 +19,6 @@ try_fit <- function(data, curve_func, arguments) {
   return(fit)
 }
 
-
 #' A function that finds the value of `x` for a fitted `nlsModel` for a targeted `y` value
 #'
 #' @param fit A fitted `nlsLM` object.
@@ -71,7 +70,7 @@ predict_data <- function(fit, lower_x, upper_x, group = NULL, num_points = 1e3) 
   x_vals <- seq(lower_x, upper_x, length.out = num_points)
   if (!rlang::is_null(group)) {
     # go through each and collate
-    predicted <- purrr::map(group_vals, function(i) {
+    predicted <- purrr::map(group, function(i) {
       tibble::tibble(
         x = x_vals,
         y = predict(fit, newdata = tibble::tibble(x = x_vals, group = i)),

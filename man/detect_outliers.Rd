@@ -41,10 +41,6 @@ An list data contains in order:
 \item A fitted \code{nls} object.
 \item Original \code{data} with modified columns to represent outliers
 }
-@importFrom dplyr filter if_else mutate pull relocate row_number
-@importFrom purrr map_vec
-@importFrom rlang as_name enquo ensym sym
-@importFrom stringr str_c
 }
 \description{
 From a \code{nls} object, detect outliers via the ROUT method, and then re-fit with outliers removed.

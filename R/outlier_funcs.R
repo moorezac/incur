@@ -51,16 +51,16 @@ huber <- function(fit, arguments, data, curve_func, iter_max = 100, k = 1.345, t
 #' @return A numeric vector of indices individual data points as outliers. This corresponds to the row number of the data.frame used in the original fit.
 #' @export
 #' 
-find_outlier_indices <- function(fit, q = 1e-5, .scale_method = "quantile") {
+find_outlier_indices <- function(fit, q = 1e-5, scale_method = "quantile") {
   residuals_vec <- resid(fit)
   n <- length(residuals_vec)
   
   # dr4pl implementation
-  if (.scale_method == "mad") {
+  if (scale_method == "mad") {
     scale <- mad(residuals_vec)
   }
   # original paper
-  if (.scale_method == "quantile") {
+  if (scale_method == "quantile") {
     scale <- quantile(
       x = residuals_vec,
       probs = pnorm(1, 0, 1) - pnorm(-1, 0, 1)
@@ -82,8 +82,7 @@ find_outlier_indices <- function(fit, q = 1e-5, .scale_method = "quantile") {
   if (length(indices_fdr) == 0) {
     indices_outlier <- NULL
   } else {
-    indices_outlier <-
-      indices_sorted[seq(from = min(indices_fdr), to = n, by = 1)]
+    indices_outlier <- indices_sorted[seq(from = min(indices_fdr), to = n, by = 1)]
   }
   
   return(indices_outlier)
@@ -105,10 +104,10 @@ find_outlier_indices <- function(fit, q = 1e-5, .scale_method = "quantile") {
 #'    \item A fitted `nls` object.
 #'    \item Original `data` with modified columns to represent outliers
 #'  } 
-#'  @importFrom dplyr filter if_else mutate pull relocate row_number
-#'  @importFrom purrr map_vec
-#'  @importFrom rlang as_name enquo ensym sym
-#'  @importFrom stringr str_c
+#' @importFrom dplyr filter if_else mutate pull relocate row_number
+#' @importFrom purrr map_vec
+#' @importFrom rlang as_name enquo ensym sym
+#' @importFrom stringr str_c
 #'  
 detect_outliers <- function(data, x_var, y_var, fit, curve_func, start_func, upper_bounds, lower_bounds, dots) {
   # which points are outliers within the fit
