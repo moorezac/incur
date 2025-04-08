@@ -9,6 +9,7 @@
 #' @importFrom readr read_csv
 #' @importFrom rlang is_null sym
 #' @importFrom stringr str_extract str_remove str_replace_all str_split str_to_lower str_trim
+#' @export
 #' 
 import_trackmate_spot_data <- function(path, spot_suffix = "-spots.csv", time_suffix = "_datetime.csv") {
   # fun to process a single dir
@@ -121,15 +122,27 @@ import_trackmate_spot_data <- function(path, spot_suffix = "-spots.csv", time_su
   return(final_spot_list)
 }
 
+#' @title Summarise across multiple `TrackMate` tracks.
+#' @description Given a set of IncuCyte data that has been produced via the 2 provided Python scripts, if there are multiple tracks per well, summarise down to one.
+#' @param list A list of `TrackMate` data.frames.
+#' @param time_col A character string that refers to the time column within the data
+#' @param multi_splot_fun A named list of a function(s) to summarise across `time_col` with. Defaults to maximum size.
+#' @return A with modified values.
+#' @importFrom dplyr across group_by summarise ungroup
+#' @importFrom purrr map
+#' @importFrom rlang ensym
+#' @importFrom tidyselect everything
+#' @export
+#' 
 adjust_trackmate_multi_track <- function(list, time_col = "datetime", multi_spot_fun = list(max = max)) {
   purrr::map(list, function(x) {
-    x <- group_by(x, !!rlang::ensym(time_col))
-    x <- summarise(x, across(
-          .cols = everything(),
+    x <- dplyr::group_by(x, !!rlang::ensym(time_col))
+    x <- dplyr::summarise(x, dplyr::across(
+          .cols = tidyselect::everything(),
           .fns = multi_spot_fun,
           .names = "{.col}"
         ))
-    x <- ungroup(x)
+    x <- dplyr::ungroup(x)
     
     return(x)
   })

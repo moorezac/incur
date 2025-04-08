@@ -72,7 +72,7 @@ plot_models <- function(data_list, x_var, y_var, fit_list, nest_vec, nest_vec_na
     if (!is.numeric(x)) {
       return(length(unique(x)) == 1)
     }
-    var(x) == 0
+    return(var(x) == 0)
   }
   
   if (!all_same(c(length(data_list), length(fit_list), length(nest_vec)))) {
