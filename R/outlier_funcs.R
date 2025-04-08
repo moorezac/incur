@@ -47,7 +47,7 @@ huber <- function(fit, arguments, data, curve_func, iter_max = 100, k = 1.345, t
 #' @description An implementation of the ROUT method described in Motulsky and Brown (2006).
 #' @param fit A fitted `nls` object.
 #' @param .q The maximum desired FDR.
-#' @param .scale_method The method in which to scale the residuals. The original paper uses the `quantile` method. The `MAD` implementation is used within the `dr4pl` package.
+#' @param scale_method The method in which to scale the residuals. The original paper uses the `quantile` method. The `MAD` implementation is used within the `dr4pl` package.
 #' @return A numeric vector of indices individual data points as outliers. This corresponds to the row number of the data.frame used in the original fit.
 #' @export
 #' 
@@ -111,7 +111,7 @@ find_outlier_indices <- function(fit, q = 1e-5, scale_method = "quantile") {
 #'  
 detect_outliers <- function(data, x_var, y_var, fit, curve_func, start_func, upper_bounds, lower_bounds, dots) {
   # which points are outliers within the fit
-  outlier_indices <- find_outlier_indices(fit, .scale_method = "mad")
+  outlier_indices <- find_outlier_indices(fit, scale_method = "mad")
   
   # name a new column based on y_var
   # outlier_column <- stringr::str_c("outlier", rlang::as_name(rlang::enquo(y_var)), sep = "_")
