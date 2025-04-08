@@ -1,8 +1,8 @@
 #' @title Plot a model fitted with `incur`.
 #' @description Plot a model fitted with `incur`.
 #' @param data A `data.frame` or `data.frame` extension (tibble) in long format.
-#' @param x_var An string that refers to the the `x` value within `data`.
-#' @param y_var An qstring that refers to the the `y` value within `data`.
+#' @param x_var A string that refers to the the `x` value within `data`.
+#' @param y_var A string that refers to the the `y` value within `data`.
 #' @param fit The fitted `nlsModel` object.
 #' @param return_data Whether to instead return the original and predicted data to be plot elsewhere.
 #' @return A `ggplot` object.
@@ -39,8 +39,8 @@ plot_model <- function(data, x_var, y_var, fit, return_data = FALSE) {
   # aes
   map_point <- map_line <- aes(x = x, y = y)
   if (use_colour) {
-    map_point$colour <- as.name(group)
-    map_line$colour <- as.name(group)
+    map_point$colour <- as.name("group")
+    map_line$colour <- as.name("group")
   }
   if (use_shape) {
     map_point$shape <- as.name(outlier_column)

@@ -1,8 +1,8 @@
 #' @title Fit a curve with `incur`.
 #' @description Given a set of data, fit an curve via `minpack.lm` with options for shared parameters, bounds, and automated outlier detection and removal.
 #' @param data A `data.frame` or `data.frame` extension (tibble) in long format.
-#' @param x_var An string that refers to the the `x` value within `data`.
-#' @param y_var An qstring that refers to the the `y` value within `data`.
+#' @param x_var A character string that refers to the the `x` value within `data`.
+#' @param y_var A character string that refers to the the `y` value within `data`.
 #' @param curve_func A function that describes a curve/model in terms of `x`. See `incur::incur_models` for common examples. Alternatively, see below for examples.
 #' @param start_func A function with arguments `x` and `y` that returns a named list of starting values for all arguments/parameters within `.curv_func`. See `incur::incur_models` for common examples. Alternatively, see below for example.
 #' @param start_vals A named list of starting values for all arguments/parameters within `curv_func`. This cannot be used in conjunction with `detect_outliers`.
