@@ -24,9 +24,9 @@ fit_model(
 \arguments{
 \item{data}{A \code{data.frame} or \code{data.frame} extension (tibble) in long format.}
 
-\item{x_var}{An string that refers to the the \code{x} value within \code{data}.}
+\item{x_var}{A character string that refers to the the \code{x} value within \code{data}.}
 
-\item{y_var}{An qstring that refers to the the \code{y} value within \code{data}.}
+\item{y_var}{A character string that refers to the the \code{y} value within \code{data}.}
 
 \item{curve_func}{A function that describes a curve/model in terms of \code{x}. See \code{incur::incur_models} for common examples. Alternatively, see below for examples.}
 
