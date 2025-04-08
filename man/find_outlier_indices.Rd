@@ -4,12 +4,12 @@
 \alias{find_outlier_indices}
 \title{Find outliers within a fitted \code{nls} object.}
 \usage{
-find_outlier_indices(fit, q = 1e-05, .scale_method = "quantile")
+find_outlier_indices(fit, q = 1e-05, scale_method = "quantile")
 }
 \arguments{
 \item{fit}{A fitted \code{nls} object.}
 
-\item{.scale_method}{The method in which to scale the residuals. The original paper uses the \code{quantile} method. The \code{MAD} implementation is used within the \code{dr4pl} package.}
+\item{scale_method}{The method in which to scale the residuals. The original paper uses the \code{quantile} method. The \code{MAD} implementation is used within the \code{dr4pl} package.}
 
 \item{.q}{The maximum desired FDR.}
 }
