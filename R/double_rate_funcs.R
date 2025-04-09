@@ -6,6 +6,7 @@
 #' @param shared_group A string for the column in `data` that refers to individual groups to share fitted parameters.
 #' @param n A character string in `shared_group` that refers to samples which represent samples composed of baseline numbers of cells.
 #' @param two_n A character string in `shared_group` that refers to samples which represent samples composed of two times baseline numbers of cells.
+#' @export
 #'
 calc_double_rate_group <- function(data, x_var = "x", y_var = "y", shared_group = "group", n, two_n, x_lab = "x", y_lab = "y") {
   # data <- double_fit_shared$data
@@ -89,16 +90,20 @@ calc_double_rate_group <- function(data, x_var = "x", y_var = "y", shared_group 
   # inflection_diff <- inflection_n[3] - inflection_two_n[3]
 }
 
+#' @title Calculate the double rate for known cell numbers over time.
+#' @description Calculate the double rate for known cell numbers over time.
+#' @param start_date The date of the first measurement in format `YYYY/MM/DD`.
+#' @param end_date The date of the second measurement in format `YYYY/MM/DD`.
+#' @param start_n Number of cells at first measurement.
+#' @param end_n Number of cells at second measurement.
+#' @return Doubling in hours.
+#' @export
+#'
 calc_double_rate_passage <- function(start_date, end_date, start_n, end_n) {
   start_date <- as.Date(start_date)
   end_date <- as.Date(end_date)
   
-  days_between <-
-    difftime(
-      time1 = end_date,
-      time2 = start_date
-    ) |>
-    as.numeric()
+  days_between <- difftime(end_date, start_date) |> as.numeric()
   
   return(days_between * log(2) / (log(end_n / start_n)) * 24)
 }
