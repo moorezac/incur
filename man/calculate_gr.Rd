@@ -4,18 +4,18 @@
 \alias{calculate_gr}
 \title{Calculate GR values.}
 \usage{
-calculate_gr(.best_fit_values, group, .control_name, .cap = TRUE)
+calculate_gr(best_fit_values, group, control_name, cap = TRUE)
 }
 \arguments{
-\item{.best_fit_values}{A fitted \code{nlsLM} object.}
+\item{best_fit_values}{A fitted \code{nlsLM} object.}
 
-\item{.lower}{The lower bound of where to calculate AUC.}
+\item{lower}{The lower bound of where to calculate AUC.}
 
-\item{.upper}{The upper bound of where to calculate AUC.}
+\item{upper}{The upper bound of where to calculate AUC.}
 }
 \value{
 A list of class \code{integrate} as produced by \code{stats::integrate}.
 }
 \description{
-A function that finds area under the curve for a fitted \code{nls} object across a lower and upper bound.
+Calculate GR values from
 }

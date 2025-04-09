@@ -19,39 +19,42 @@
 #'    \item `fit`: the fitted `nlsModel` object.
 #'    \item `data`: the original data used in the fit. If `detect_outliers` is true then column added in the format `outlier_{y_var}` will be added to indicate which points are detected as outliers.
 #'  }
-#'  @importFrom checkmate assert_character assert_data_frame assert_function assert_list assert_logical
-#'  @importFrom dplyr mutate relocate
-#'  @importFrom rlang is_null
-#'  @importFrom tidyr drop_na
+#' @importFrom checkmate assert_character assert_data_frame assert_function assert_list assert_logical
+#' @importFrom dplyr mutate relocate
+#' @importFrom rlang is_null
+#' @importFrom tidyr drop_na
 #' @export
 #' @examples
+#' library(incur)
+#' library(tidyverse)
+#' 
 #' # exponential plateau
-# func <- function(x, y0, ym, k) ym - (ym - y0) * exp(-k * x)
-# func_start <- function(x, y) list(ym = max(y), y0 = min(y), k = 1)
+#' func <- function(x, y0, ym, k) ym - (ym - y0) * exp(-k * x)
+#' func_start <- function(x, y) list(ym = max(y), y0 = min(y), k = 1)
 #'
 #' # fit the curve to the data
 #' # share y0 and k across state and force y0 > 0
-# fit <- fit_model(
-#   data = Puromycin,
-#   x_var = "conc",
-#   y_var = "rate",
-#   curve_func = func,
-#   start_func = func_start,
-#   detect_outliers = TRUE,
-#   lower_bounds = list(y0 = 0),
-#   shared_group = "state",
-#   shared_params = c("y0", "k"),
-#   control = minpack.lm::nls.lm.control(maxiter = 1e3)
-# )
+#' model <- fit_model(
+#'   data = Puromycin,
+#'   x_var = "conc",
+#'   y_var = "rate",
+#'   curve_func = func,
+#'   start_func = func_start,
+#'   detect_outliers = TRUE,
+#'   lower_bounds = list(y0 = 0),
+#'   shared_group = "state",
+#'   shared_params = c("y0", "k"),
+#'   control = minpack.lm::nls.lm.control(maxiter = 1e3)
+#' )
 #' # create data from each group
 #' predicted <- map(unique(Puromycin$state), function(i) {
 #'   # more data points = smoother curve
 #'   # this is easier than a geom_function approach
-#'   x_vals <- seq(min(fit$data$x), max(fit$data$x), length.out = 1e4)
+#'   x_vals <- seq(min(fit$data$x), max(model$data$x), length.out = 1e4)
 #'   # create the data and return
 #'   tibble(
 #'     x = x_vals,
-#'     y = predict(res$fit, newdata = tibble(x = x_vals, group = i)),
+#'     y = predict(model$fit, newdata = tibble(x = x_vals, group = i)),
 #'     group = i
 #'   )
 #' })
@@ -59,7 +62,7 @@
 #' predicted <- bind_rows(predicted)
 #' # plot
 #' ggplot(mapping = aes(x, y, colour = group)) +
-#'   geom_point(data = fit$data) +
+#'   geom_point(data = model$data) +
 #'   geom_line(data = predicted)
 fit_model <- function(data, x_var, y_var, curve_func, start_func = NULL, start_vals = NULL, huber = FALSE, detect_outliers = FALSE, shared_group = NULL, shared_params = NULL, lower_bounds = NULL, upper_bounds = NULL, return_func = FALSE, ...) {
   # dots dots dots

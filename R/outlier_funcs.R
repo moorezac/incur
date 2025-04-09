@@ -27,6 +27,12 @@ huber <- function(fit, arguments, data, curve_func, iter_max = 100, k = 1.345, t
     arguments_new <- append(arguments, list(weights = weights_vec))
     
     fit_new <- try_fit(data, curve_func, arguments_new)
+    
+    if (inherits(fit_new, "try-error")) {
+      message("error in huber")
+      return(fit_old)
+    }
+    
     coef_new <- coef(fit_new)
     
     # check convergence
@@ -133,7 +139,7 @@ detect_outliers <- function(data, x_var, y_var, fit, curve_func, start_func, upp
     )
     
     # new arguments with outliers removed
-    final_arguments <- create_final_arguments(curve_func, start_vals_filtered, lower_bounds, upper_bounds, dots)
+    final_arguments <- make_final_arguments(curve_func, start_vals_filtered, lower_bounds, upper_bounds, dots)
     
     # new fit with outliers removed
     fit_outlier_removed <- try_fit(dplyr::filter(data, !!rlang::ensym(outlier_column) == FALSE), curve_func, final_arguments)

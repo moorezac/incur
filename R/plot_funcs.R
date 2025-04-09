@@ -113,7 +113,6 @@ plot_models <- function(data_list, x_var, y_var, fit_list, nest_vec, nest_vec_na
   set_1 <- c("#e41a1c", "#377eb8", "#4daf4a", "#984ea3", "#ff7f00", "#ffff33", "#a65628", "#f781bf", "#999999")
   set_3 <- c("#8dd3c7", "#ffffb3", "#bebada", "#fb8072", "#80b1d3", "#fdb462", "#b3de69", "#fccde5", "#d9d9d9", "#bc80bd", "#ccebc5", "#ffed6f")
   
-  
   # deal with outliers
   outlier_column <- str_c("outlier", rlang::as_name(enquo(y_var)), sep = "_")
   # colour_vector <- NULL

@@ -23,7 +23,7 @@ calc_double_rate_group <- function(data, x_var = "x", y_var = "y", shared_group 
   
   # extract data
   data_x <- dplyr::filter(data, group == n) |> dplyr::pull(x)
-  data_n <- dplyr::ilter(data, group == n) |> dplyr::pull(y)
+  data_n <- dplyr::filter(data, group == n) |> dplyr::pull(y)
   data_two_n <- dplyr::filter(data, group == two_n) |> dplyr::pull(y)
   
   # ratio approach
@@ -31,7 +31,7 @@ calc_double_rate_group <- function(data, x_var = "x", y_var = "y", shared_group 
   
   # if assume sigmoid growth
   # when two_n > n the ratio max is around two_n inflection point
-  max_index <- which(ratio == max(ratio))
+  max_index <- which(data_ratio == max(data_ratio))
   data_x_filt <- data_x[0:max_index]
   data_ratio_filt <- data_ratio[0:max_index]
   # plot(data_ratio_filt ~ data_x_filt)
