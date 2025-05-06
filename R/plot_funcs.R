@@ -88,6 +88,8 @@ plot_models <- function(data_list, x_var, y_var, fit_list, nest_vec, nest_vec_na
     return(a)
   })
   data_collated <- bind_rows(data_list)
+  # else continuous - just in case
+  data_collated <- mutate(data_collated, !!ensym(nest_vec_name) := as.character(!!ensym(nest_vec_name)))
   
   data_predicted <- map2(data_list, fit_list, function(a, b) {
     # check for group
@@ -105,6 +107,8 @@ plot_models <- function(data_list, x_var, y_var, fit_list, nest_vec, nest_vec_na
     return(predicted)
   })
   data_predicted <- bind_rows(data_predicted)
+  # else continuous - just in case
+  data_predicted <- mutate(data_predicted, !!ensym(nest_vec_name) := as.character(!!ensym(nest_vec_name)))
   
   if (return_data) {
     return(list(collated = data_collated, predicted = data_predicted))
@@ -118,17 +122,17 @@ plot_models <- function(data_list, x_var, y_var, fit_list, nest_vec, nest_vec_na
   # colour_vector <- NULL
   
   if (outlier_column %in% colnames(data_collated)) {
-    .shape_vector <- c(1, 16)
-    names(.shape_vector) <- c("True", "False")
-    .shape_labels <- c("True", "False")
-    names(.shape_labels) <- c("True", "False")
+    shape_vector <- c(1, 16)
+    names(shape_vector) <- c("True", "False")
+    shape_labels <- c("True", "False")
+    names(shape_labels) <- c("True", "False")
     
     # add in - not sure we can set values on scale_shape with TRUE/FALSE?
     data_collated <- mutate(data_collated, !!ensym(outlier_column) := str_to_title(!!ensym(outlier_column)))
     
     gg <- ggplot(mapping = aes(x, y, colour = !!ensym(nest_vec_name), shape = !!ensym(outlier_column))) +
       guides(shape = guide_legend(title = "Outlier", override.aes = list(alpha = 1))) +
-      scale_shape_manual(values = .shape_vector, labels = .shape_labels)
+      scale_shape_manual(values = shape_vector, labels = shape_labels)
     data_predicted <- mutate(data_predicted, !!ensym(outlier_column) := "False")
   } else {
     gg <- gg <- ggplot(mapping = aes(x, y, colour = !!ensym(nest_vec_name)))
@@ -137,8 +141,8 @@ plot_models <- function(data_list, x_var, y_var, fit_list, nest_vec, nest_vec_na
   # plot
   gg <- gg +
     geom_point(data = data_collated, alpha = 0.25) +
-    geom_line(mapping = aes(group = !!ensym(nest_vec_name)), data = data_predicted, linewidth = 1.1, colour = "black") +
-    geom_line(data = data_predicted, linewidth = 1) +
+    geom_line(mapping = aes(colour = !!ensym(nest_vec_name), group = !!ensym(nest_vec_name)), data = data_predicted, linewidth = 1.1) +
+    # geom_line(data = data_predicted, linewidth = 1) +
     labs(x = enquo(x_var), y = enquo(y_var))
   
   if (!is_null(label_vector) & !is_null(colour_vector)) {
