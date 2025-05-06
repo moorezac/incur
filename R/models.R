@@ -27,6 +27,15 @@ incur_models <- list(
       bottom + (top - bottom) / (1 + ec50 / x)^slope
     },
     start_func = function(x, y) {
+      x_at_y_mid <- function(x, y) {
+        if (length(x) != length(y)) {
+          stop("x and y must have equal lengths")
+        }
+        mid <- min(y) + (max(y) - min(y)) / 2
+        index <- which.min(abs(y - mid))
+        return(x[index])
+      }
+      
       list(
         bottom = min(y),
         top = max(y),
@@ -40,6 +49,15 @@ incur_models <- list(
       bottom + (top - bottom) / (1 + 10^((log_ec50 - x) * slope))
     },
     start_func = function(x, y) {
+      x_at_y_mid <- function(x, y) {
+        if (length(x) != length(y)) {
+          stop("x and y must have equal lengths")
+        }
+        mid <- min(y) + (max(y) - min(y)) / 2
+        index <- which.min(abs(y - mid))
+        return(x[index])
+      }
+      
       list(
         bottom = min(y),
         top = max(y),
@@ -70,6 +88,15 @@ incur_models <- list(
       bottom + (top - bottom) / (1 + (2^(1 / s) - 1) * ((ec50 / x)^slope))^s
     },
     start_func = function(x, y) {
+      x_at_y_mid <- function(x, y) {
+        if (length(x) != length(y)) {
+          stop("x and y must have equal lengths")
+        }
+        mid <- min(y) + (max(y) - min(y)) / 2
+        index <- which.min(abs(y - mid))
+        return(x[index])
+      }
+      
       list(
         bottom = min(y),
         top = max(y),
@@ -84,6 +111,15 @@ incur_models <- list(
       bottom + (top - bottom) / ((1 + 10^(((log_ec50 + (1 / slope) * log10((2^(1 / s)) - 1)) - x) * slope))^s)
     },
     start_func = function(x, y) {
+      x_at_y_mid <- function(x, y) {
+        if (length(x) != length(y)) {
+          stop("x and y must have equal lengths")
+        }
+        mid <- min(y) + (max(y) - min(y)) / 2
+        index <- which.min(abs(y - mid))
+        return(x[index])
+      }
+      
       list(
         bottom = min(y),
         top = max(y),
