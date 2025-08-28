@@ -2,24 +2,64 @@
 % Please edit documentation in R/plot_funcs.R
 \name{plot_model}
 \alias{plot_model}
-\title{Plot a model fitted with \code{incur}.}
+\title{Plot Fitted Models with Data Points}
 \usage{
-plot_model(data, x_var, y_var, fit, return_data = FALSE)
+plot_model(data, fit, x_var, y_var, return_data = FALSE)
 }
 \arguments{
-\item{data}{A \code{data.frame} or \code{data.frame} extension (tibble) in long format.}
+\item{data}{A data frame containing the experimental data.
+#' @param fit A fitted model object from \code{fit_model()}.}
 
-\item{x_var}{A string that refers to the the \code{x} value within \code{data}.}
+\item{x_var}{Character string specifying the x-axis variable name.}
 
-\item{y_var}{A string that refers to the the \code{y} value within \code{data}.}
+\item{y_var}{Character string specifying the y-axis variable name.}
 
-\item{fit}{The fitted \code{nlsModel} object.}
-
-\item{return_data}{Whether to instead return the original and predicted data to be plot elsewhere.}
+\item{return_data}{Logical indicating whether to return plot data instead of
+the plot object (default: FALSE).}
 }
 \value{
-A \code{ggplot} object.
+A ggplot object (default) or a list containing original and predicted
+data for external plotting (if return_data = TRUE).
 }
 \description{
-Plot a model fitted with \code{incur}.
+Create publication-quality plots showing fitted model curves overlaid on
+experimental data points, with support for grouped models and outlier flagging.
 }
+\details{
+The function automatically detects and handles:
+\itemize{
+\item Grouped models (shared parameters): adds color coding by group
+\item Outlier flags: uses different point shapes for flagged outliers
+\item Legend formatting: provides informative legends for groups and outliers
+\item Smooth curves: generates high-resolution prediction curves
+}
+}
+\examples{
+\dontrun{
+# Plot single model fit
+model_plot <- plot_model(
+  data = growth_data,
+  x_var = "time_hours",
+  y_var = "cell_count",
+  fit = fitted_model
+)
+print(model_plot)
+
+# Return data for custom plotting
+plot_data <- plot_model(
+  data = growth_data,
+  x_var = "time_hours",
+  y_var = "cell_count",
+  fit = fitted_model,
+  return_data = TRUE
+)
+}
+}
+\seealso{
+Other visualization: 
+\code{\link{font_size}},
+\code{\link{plot_model_conc}()},
+\code{\link{plot_model_conc_gr_dose}()},
+\code{\link{plot_model_conc_gr_time}()}
+}
+\concept{visualization}

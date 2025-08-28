@@ -2,7 +2,7 @@
 % Please edit documentation in R/import_funcs.R
 \name{adjust_trackmate_multi_track}
 \alias{adjust_trackmate_multi_track}
-\title{Summarise across multiple \code{TrackMate} tracks.}
+\title{Summarize Multiple TrackMate Tracks per Time Point}
 \usage{
 adjust_trackmate_multi_track(
   list,
@@ -11,15 +11,60 @@ adjust_trackmate_multi_track(
 )
 }
 \arguments{
-\item{list}{A list of \code{TrackMate} data.frames.}
+\item{time_col}{Character string specifying the time column name (default: "datetime").}
 
-\item{time_col}{A character string that refers to the time column within the data}
+\item{multi_spot_fun}{A named list of aggregation functions to apply across multiple
+spots per time point (default: \code{list(max = max)} for maximum values).}
 
-\item{multi_splot_fun}{A named list of a function(s) to summarise across \code{time_col} with. Defaults to maximum size.}
+\item{data_list}{A list of TrackMate data frames (typically from \code{import_trackmate_spot_data()}).}
 }
 \value{
-A with modified values.
+A list of data frames with the same structure as input, but with multiple
+tracks per time point summarized according to the specified functions.
 }
 \description{
-Given a set of IncuCyte data that has been produced via the 2 provided Python scripts, if there are multiple tracks per well, summarise down to one.
+When TrackMate detects multiple cellular objects per well at each time point,
+summarize across tracks using specified aggregation functions. This is useful
+for reducing multiple cell measurements to single values per time point.
 }
+\details{
+Common aggregation strategies include:
+\itemize{
+\item Maximum values: \code{list(max = max)} - use largest measurement per time point
+\item Mean values: \code{list(mean = mean)} - average across all objects
+\item Median values: \code{list(median = median)} - robust central tendency
+\item Multiple metrics: \code{list(mean = mean, sd = sd)} - mean and standard deviation
+}
+}
+\examples{
+\dontrun{
+# Use maximum values per time point (default)
+summarized_data <- adjust_trackmate_multi_track(
+  data_list = trackmate_data,
+  time_col = "datetime"
+)
+
+# Use mean values instead
+mean_data <- adjust_trackmate_multi_track(
+  data_list = trackmate_data,
+  time_col = "datetime",
+  multi_spot_fun = list(mean = mean)
+)
+
+# Calculate multiple summary statistics
+multi_summary <- adjust_trackmate_multi_track(
+  data_list = trackmate_data,
+  time_col = "datetime",
+  multi_spot_fun = list(
+    mean = mean,
+    median = median,
+    sd = sd
+  )
+)
+}
+}
+\seealso{
+Other data_import: 
+\code{\link{import_trackmate_spot_data}()}
+}
+\concept{data_import}

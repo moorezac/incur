@@ -2,20 +2,29 @@
 % Please edit documentation in R/shared_parameter_funcs.R
 \name{make_shared_body}
 \alias{make_shared_body}
-\title{Make a shared function body.}
+\title{Create Function Body for Shared Parameter Models}
 \usage{
-make_shared_body(func, group, params)
+make_shared_body(func, group_vec, share_params)
 }
 \arguments{
-\item{func}{A function for which the body is to be modified.}
+\item{group_vec}{Character vector of unique group identifiers.}
 
-\item{group}{A character vector that contains all unique grouping values.}
+\item{share_params}{Character vector of parameter names to share across groups.}
 
-\item{params}{A character vector of arguments in \code{func} that are to be shared across \code{groups}.}
+\item{model_func}{A function defining the mathematical model.}
 }
 \value{
-An unevaluated \code{call} that contains a vectorised \code{case_when} to modify shared parameters based on \code{group} values. This can be used to then create a new function.
+A call object representing the modified function body.
 }
 \description{
-Create a shared function body across arguments and individual groups.
+Generate a function body that implements shared parameter logic using
+\code{dplyr::case_when()} to assign appropriate parameter values based on group membership.
 }
+\seealso{
+Other shared_parameters: 
+\code{\link{make_shared_formals}()},
+\code{\link{make_shared_start_values}()},
+\code{\link{prepare_shared_parameters}()}
+}
+\concept{shared_parameters}
+\keyword{internal}

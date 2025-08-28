@@ -1,7 +1,6 @@
 ---
 title: "1. Export and segment data from the IncuCyte"
 author: "Zachery Moore"
-date: "2025-02-13"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{export_data}

@@ -2,18 +2,34 @@
 % Please edit documentation in R/helper_funcs.R
 \name{index_of_closest_value}
 \alias{index_of_closest_value}
-\title{Find the index of a vector closest to a target value.}
+\title{Find Index of Closest Value in Vector}
 \usage{
 index_of_closest_value(vector, target)
 }
 \arguments{
 \item{vector}{A numeric vector to search within.}
 
-\item{target}{The target value to find the closest value to.}
+\item{target}{The target value to find the closest match for.}
 }
 \value{
-An index of \code{vector} that contains the closest value to \code{target}
+An integer index indicating the position of the closest value in \code{vector}.
 }
 \description{
-From a vector of \code{numeric}, find which the index of which value is closest to a desired value.
+Locate the index position of the value in a numeric vector that is closest
+to a specified target value.
 }
+\examples{
+\dontrun{
+values <- c(1.2, 3.7, 5.1, 8.9, 12.3)
+closest_idx <- index_of_closest_value(values, 5.0)  # Returns 3
+}
+}
+\seealso{
+Other utility_functions: 
+\code{\link{find_identical_to_column}()},
+\code{\link{log_molar_to_string}()},
+\code{\link{prepare_data}()},
+\code{\link{x_at_y_mid}()}
+}
+\concept{utility_functions}
+\keyword{internal}

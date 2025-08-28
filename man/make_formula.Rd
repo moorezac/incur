@@ -2,16 +2,30 @@
 % Please edit documentation in R/final_argument_funcs.R
 \name{make_formula}
 \alias{make_formula}
-\title{Make a formula expression from a function}
+\title{Create Formula Expression from Model Function}
 \usage{
 make_formula(func)
 }
 \arguments{
-\item{func}{A function that describes a curve in terms of \code{x} and individual curve parameters.}
+\item{model_func}{A function that describes a mathematical curve in terms of \code{x}
+and individual curve parameters.}
 }
 \value{
-A language object in the form of \code{y ~ f()}
+A language object representing the formula \code{y ~ f(parameters)}.
 }
 \description{
-From a provided function, create a formula in terms of \verb{y ~ f(\{function arguments\})}.
+Generate a formula object in the form \code{y ~ f(arguments)} from a provided
+model function, suitable for use with nonlinear least squares fitting.
 }
+\details{
+This is an internal helper function used to prepare arguments for \code{minpack.lm::nlsLM()}.
+The function extracts the argument structure from the provided function
+and creates an appropriate formula object.
+}
+\seealso{
+Other model_helpers: 
+\code{\link{make_bounds}()},
+\code{\link{prepare_final_arguments}()}
+}
+\concept{model_helpers}
+\keyword{internal}

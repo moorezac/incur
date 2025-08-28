@@ -2,20 +2,45 @@
 % Please edit documentation in R/fit_funcs.R
 \name{calculate_auc}
 \alias{calculate_auc}
-\title{Calculate AUC for a fitted model.}
+\title{Calculate Area Under Curve for Fitted Model}
 \usage{
-calculate_auc(fit, lower, upper)
+calculate_auc(fit, lower_x, upper_x)
 }
 \arguments{
-\item{fit}{A fitted \code{nlsLM} object.}
+\item{fit}{A fitted \code{nls} object from \code{fit_model()} or similar.}
 
-\item{lower}{The lower bound of where to calculate AUC.}
+\item{lower_x}{The lower bound for integration.}
 
-\item{upper}{The upper bound of where to calculate AUC.}
+\item{upper_x}{The upper bound for integration.}
 }
 \value{
-A list of class \code{integrate} as produced by \code{stats::integrate}.
+A list of class \code{integrate} containing:
+\describe{
+\item{value}{The calculated area under the curve}
+\item{abs.error}{Estimate of absolute error}
+\item{subdivisions}{Number of subdivisions used}
+\item{message}{Status message}
+}
 }
 \description{
-A function that finds area under the curve for a fitted \code{nls} object across a lower and upper bound.
+Calculate the area under the curve (AUC) for a fitted model between specified
+bounds using numerical integration. Useful for pharmacokinetic analysis or
+measuring total response over time.
 }
+\examples{
+\dontrun{
+# Calculate total growth over time
+auc_result <- calculate_auc(
+  fit = growth_fit,
+  lower_x = 0,
+  upper_x = 72  # 72 hours
+)
+total_growth <- auc_result$value
+}
+}
+\seealso{
+Other model_analysis: 
+\code{\link{find_x_for_y}()},
+\code{\link{predict_data}()}
+}
+\concept{model_analysis}

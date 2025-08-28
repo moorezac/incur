@@ -1,88 +1,272 @@
-#' @title Attempt to fit a curve via `minpack.lm`
-#' @description Try to fit a curve within a new environment. See help page on `rlang::exec` for background on this approach.
-#' @param data A A `data.frame` or `data.frame` extension (tibble) in long format with columns `x` and `y`. 
-#' @param curve_func A function that describes a curve/model in terms of `x`.
-#' @param arguments A named list of arguments to be injected into the `minpack.lm::nlsLM` function.
-#' @return Either a fitted `nls` object if expression is evaluated without error, or an invisible object with class `try-error`.
-#' @importFrom rlang env expr
-#' @importFrom minpack.lm nlsLM
-#' 
-try_fit <- function(data, curve_func, arguments) {
-  f <- curve_func
-  fit <- try({
-    new_env <- rlang::env(dat = data)
-    eval(
-      rlang::expr(minpack.lm::nlsLM(data = dat, !!!arguments)),
-      envir = new_env
-    )
-  })
-  return(fit)
-}
-
-#' A function that finds the value of `x` for a fitted `nlsModel` for a targeted `y` value
+#' Find X Value for Target Y Value from Fitted Model
 #'
-#' @param fit A fitted `nlsLM` object.
-#' @param x_vals A vector of `x` values in which to search across.
-#' @param target The target `y` value to search for.
-#' @return A list produced by `uniroot`. See page for precise details.
+#' @description
+#' Use root-finding to determine the x value that produces a specified y value
+#' from a fitted nonlinear model. Commonly used to find IC50, EC50, or other
+#' benchmark concentrations.
+#'
+#' @param fit A fitted `nls` object from `fit_model()` or similar.
+#' @param x_values A numeric vector defining the search range for x values.
+#' @param target The target y value to solve for.
+#'
+#' @return A list object from `uniroot()` containing:
+#' \describe{
+#'   \item{root}{The x value that produces the target y value}
+#'   \item{f.root}{The function value at the root (should be near zero)}
+#'   \item{iter}{Number of iterations used}
+#'   \item{init.it}{Number of initial iterations}
+#'   \item{estim.prec}{Estimated precision}
+#' }
+#'
+#' @family model_analysis
+#' @importFrom stats uniroot predict
 #' @export
-#' 
-find_root_fit <- function(fit, x_vals, target) {
+#'
+#' @examples
+#' \dontrun{
+#' # Find IC50 (concentration giving 50% inhibition)
+#' ic50_result <- find_x_for_y(
+#'   fit = dose_response_fit,
+#'   x_values = c(-9, -4),  # Log concentration range
+#'   target = 50  # 50% viability
+#' )
+#' ic50_value <- ic50_result$root
+#' }
+find_x_for_y <- function(fit, x_values, target) {
   uniroot(
-    f = function(x) predict(fit, tibble(x)) - target,
-    interval = c(min(x_vals), max(x_vals))
+    f = function(x) {
+      predict(fit, data.frame(x = x)) - target
+    },
+    interval = c(min(x_values), max(x_values))
   )
 }
 
-#' @title Calculate AUC for a fitted model.
-#' @description A function that finds area under the curve for a fitted `nls` object across a lower and upper bound.
-#' @param fit A fitted `nlsLM` object.
-#' @param lower The lower bound of where to calculate AUC.
-#' @param upper The upper bound of where to calculate AUC.
-#' @return A list of class `integrate` as produced by `stats::integrate`.
+#' Calculate Area Under Curve for Fitted Model
+#'
+#' @description
+#' Calculate the area under the curve (AUC) for a fitted model between specified
+#' bounds using numerical integration. Useful for pharmacokinetic analysis or
+#' measuring total response over time.
+#'
+#' @param fit A fitted `nls` object from `fit_model()` or similar.
+#' @param lower_x The lower bound for integration.
+#' @param upper_x The upper bound for integration.
+#'
+#' @return A list of class `integrate` containing:
+#' \describe{
+#'   \item{value}{The calculated area under the curve}
+#'   \item{abs.error}{Estimate of absolute error}
+#'   \item{subdivisions}{Number of subdivisions used}
+#'   \item{message}{Status message}
+#' }
+#'
+#' @family model_analysis
 #' @importFrom stats integrate predict
+#' @importFrom tibble tibble
 #' @export
-
-calculate_auc <- function(fit, lower, upper) {
-  stats::integrate(
-    f = function(x) stats::predict(fit, data.frame(x)),
-    lower = lower,
-    upper = upper
+#'
+#' @examples
+#' \dontrun{
+#' # Calculate total growth over time
+#' auc_result <- calculate_auc(
+#'   fit = growth_fit,
+#'   lower_x = 0,
+#'   upper_x = 72  # 72 hours
+#' )
+#' total_growth <- auc_result$value
+#' }
+calculate_auc <- function(fit, lower_x, upper_x) {
+  integrate(
+    f = function(x) {
+      predict(fit, tibble(x = x))
+    },
+    lower = lower_x,
+    upper = upper_x
   )
 }
 
-#' @title Predict data from a `nls` object over a range of set `x` vakyes
-#' @description This function can be used to predict a range of values between set points, and further set the precise number of values between said points. This assumes the `fit` object takes values in terms of `x`.
-#' @param fit A `nls` object
-#' @param lower_x The lower `x` value to predict from.
-#' @param upper_x The upper `x` value to predict from.
-#' @param group A character vector that contains each unique grouping value used in the initial fit.
-#' @param num_points How many points to predict values between `lower_x` and `upper_x`
-#' @return Either a fitted `nls` object if expression is evaluated without error, or an invisible object with class `try-error`
+#' Generate Predictions from Fitted Model
+#'
+#' @description
+#' Generate smooth prediction curves from fitted models over a specified range
+#' of x values. Supports both single models and grouped models with shared parameters.
+#'
+#' @param fit A fitted `nls` object from `fit_model()`.
+#' @param lower_x The minimum x value for predictions.
+#' @param upper_x The maximum x value for predictions.
+#' @param group Optional character vector of group values for shared parameter models.
+#' @param num_points Number of prediction points between lower_x and upper_x (default: 1000).
+#'
+#' @return A tibble containing:
+#' \describe{
+#'   \item{x}{Prediction x values}
+#'   \item{y}{Predicted y values}
+#'   \item{group}{Group identifier (if applicable)}
+#' }
+#'
+#' @family model_analysis
 #' @importFrom dplyr bind_rows
 #' @importFrom purrr map
 #' @importFrom rlang is_null
 #' @importFrom tibble tibble
+#' @importFrom stats predict
 #' @export
+#'
+#' @examples
+#' \dontrun{
+#' # Generate smooth prediction curve
+#' predictions <- predict_data(
+#'   fit = growth_fit,
+#'   lower_x = 0,
+#'   upper_x = 100,
+#'   num_points = 500
+#' )
+#'
+#' # For grouped model
+#' predictions <- predict_data(
+#'   fit = grouped_fit,
+#'   lower_x = 0,
+#'   upper_x = 100,
+#'   group = c("cell_line_A", "cell_line_B")
+#' )
+#' }
+predict_data <- function(
+  fit,
+  lower_x,
+  upper_x,
+  group = NULL,
+  num_points = 1e3
+) {
+  x_values <- seq(lower_x, upper_x, length.out = num_points)
 
-predict_data <- function(fit, lower_x, upper_x, group = NULL, num_points = 1e3) {
-  # full range of x values
-  x_vals <- seq(lower_x, upper_x, length.out = num_points)
   if (!rlang::is_null(group)) {
-    # go through each and collate
-    predicted <- purrr::map(group, function(i) {
-      tibble::tibble(
-        x = x_vals,
-        y = predict(fit, newdata = tibble::tibble(x = x_vals, group = i)),
+    purrr::map(group, function(i) {
+      tibble(
+        x = x_values,
+        y = predict(fit, newdata = tibble(x = x_values, group = i)),
         group = i
       )
     }) |>
       dplyr::bind_rows()
   } else {
-    predicted <- tibble::tibble(
-      x = x_vals,
-      y = predict(fit, newdata = tibble::tibble(x = x_vals))
+    tibble::tibble(
+      x = x_values,
+      y = predict(fit, newdata = tibble(x = x_values))
     )
   }
-  return(predicted)
+}
+
+#' Fit Models to Concentration Series Data
+#'
+#' @description
+#' Apply model fitting across multiple concentration levels in concentration-response
+#' experiments. Handles parallel processing and error recovery for failed fits.
+#'
+#' @param data A data frame containing concentration-response data with a `concentration` column.
+#' @param x_var Character string specifying the time variable column name.
+#' @param y_var Character string specifying the response variable column name.
+#' @param model Character string specifying the built-in model to use.
+#' @param model_func Optional custom model function.
+#' @param start_func Optional starting values function.
+#' @param start_values Optional named list of starting values.
+#' @param huber Logical for Huber robust regression (default: FALSE).
+#' @param huber_opts Options for Huber regression.
+#' @param rout Logical for ROUT outlier detection (default: FALSE).
+#' @param rout_opts Options for ROUT method.
+#' @param share_group Character string for grouping variable.
+#' @param share_params Character vector of shared parameters.
+#' @param lower_bounds Named list of lower bounds.
+#' @param upper_bounds Named list of upper bounds.
+#' @param return_func Logical for returning model function.
+#'
+#' @return A list where each element corresponds to a concentration level,
+#'   containing the fit results and processed data.
+#'
+#' @details
+#' This function automatically handles:
+#' \itemize{
+#'   \item Iteration over unique concentration levels
+#'   \item Progress tracking with progress bars
+#'   \item Error handling for failed fits
+#'   \item Exclusion of completely flagged datasets
+#'   \item Warning suppression for cleaner output
+#' }
+#'
+#' @family model_fitting
+#' @importFrom purrr map
+#' @importFrom dplyr filter
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' # Fit growth curves across concentration series
+#' conc_fits <- fit_model_conc(
+#'   data = concentration_data,
+#'   x_var = "time_hours",
+#'   y_var = "cell_area",
+#'   model = "logistic_growth"
+#' )
+#' }
+fit_model_conc <- function(
+  data,
+  x_var,
+  y_var,
+  model,
+  model_func = NULL,
+  start_func = NULL,
+  start_values = NULL,
+  huber = FALSE,
+  huber_opts = NULL,
+  rout = FALSE,
+  rout_opts = NULL,
+  share_group = NULL,
+  share_params = NULL,
+  lower_bounds = NULL,
+  upper_bounds = NULL,
+  return_func = FALSE
+) {
+  purrr::map(.progress = TRUE, unique(data$concentration), function(a) {
+    data_filt <- dplyr::filter(data, concentration == !!a)
+
+    if ("exclude" %in% colnames(data_filt)) {
+      if (all(data_filt$exclude)) {
+        return(list(
+          fit = NULL,
+          data = dplyr::filter(data, concentration == !!a)
+        ))
+      }
+    }
+
+    res <- tryCatch(
+      withCallingHandlers(
+        fit_model(
+          dplyr::filter(data, concentration == !!a),
+          x_var,
+          y_var,
+          model,
+          model_func = NULL,
+          start_func = NULL,
+          start_values = NULL,
+          huber_opts = NULL,
+          rout = TRUE,
+          rout_opts = NULL,
+          share_group = NULL,
+          share_params = NULL,
+          lower_bounds = NULL,
+          upper_bounds = NULL,
+          return_func = FALSE
+        ),
+        warning = function(w) invokeRestart("muffleWarning")
+      ),
+      error = function(e) NULL
+    )
+
+    if (inherits(res, "try-error")) {
+      res <- list(
+        fit = NULL,
+        data = dplyr::filter(data, concentration == !!a)
+      )
+    }
+    res
+  })
 }

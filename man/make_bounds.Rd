@@ -2,24 +2,36 @@
 % Please edit documentation in R/final_argument_funcs.R
 \name{make_bounds}
 \alias{make_bounds}
-\title{Make a list of upper/lower bounds.}
+\title{Create Parameter Bounds List for Model Fitting}
 \usage{
-make_bounds(func, lower = NULL, upper = NULL)
+make_bounds(func, lower_x = NULL, upper_x = NULL)
 }
 \arguments{
-\item{func}{A function for which to create a list of bounds from.}
+\item{model_func}{A function defining the mathematical model.}
 
-\item{lower}{A named list for which arguments in \code{func} to set the lower bounds for.}
+\item{lower_bounds}{A named list specifying lower bounds for specific parameters.
+Unspecified parameters default to \code{-Inf}.}
 
-\item{upper}{A named list for which arguments in \code{func} to set the upper bounds for.}
-
-\item{lower_bounds}{A named list that contains the lower bounds for specified parameters. All other lower bounds will be set at \code{-Inf}.}
-
-\item{upper_bounds}{A named list that contains the upper bounds for specified parameters. All other upper bounds will be set at \code{Inf}.}
+\item{upper_bounds}{A named list specifying upper bounds for specific parameters.
+Unspecified parameters default to \code{Inf}.}
 }
 \value{
-A named list of all arguments as seen in \code{func} with provided bounds set, and Inf/-Inf for all other upper/lower bounds respectively.
+A named list containing \code{lower} and \code{upper} elements with bounds
+for all parameters in \code{model_func}.
 }
 \description{
-From a function and a list of lower and/or upper bounds to be set, create a named list with bounds set for all arguments in \code{func} as provided, with all others set to Inf/-Inf for upper/lower bounds respectively.
+Generate named lists of upper and lower parameter bounds for nonlinear
+model fitting, setting specified bounds and defaults for unspecified parameters.
 }
+\details{
+This function ensures all parameters in the model function have defined bounds,
+either from user specification or from defaults. Parameter names must match
+those in the model function arguments.
+}
+\seealso{
+Other model_helpers: 
+\code{\link{make_formula}()},
+\code{\link{prepare_final_arguments}()}
+}
+\concept{model_helpers}
+\keyword{internal}

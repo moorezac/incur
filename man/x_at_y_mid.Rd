@@ -2,18 +2,35 @@
 % Please edit documentation in R/helper_funcs.R
 \name{x_at_y_mid}
 \alias{x_at_y_mid}
-\title{Find the closest x value at the midpoint of y.}
+\title{Find X Value at Y Midpoint}
 \usage{
 x_at_y_mid(x, y)
 }
 \arguments{
-\item{x}{A numeric vector}
+\item{x}{A numeric vector of x values.}
 
-\item{y}{A numeric vector}
+\item{y}{A numeric vector of y values (must be same length as x).}
 }
 \value{
-The closest value for \code{x} that represents the midpoint of \code{y}.
+The x value corresponding to the y midpoint.
 }
 \description{
-For two vectors x and y of equal length, this will find the x value where y is at it's mid point.
+For paired x and y vectors, find the x value where y reaches its midpoint
+between minimum and maximum values. Useful for estimating EC50/IC50 starting values.
 }
+\examples{
+\dontrun{
+x_vals <- c(1, 2, 3, 4, 5)
+y_vals <- c(10, 25, 50, 75, 90)
+midpoint_x <- x_at_y_mid(x_vals, y_vals)  # Returns x where y ≈ 50
+}
+}
+\seealso{
+Other utility_functions: 
+\code{\link{find_identical_to_column}()},
+\code{\link{index_of_closest_value}()},
+\code{\link{log_molar_to_string}()},
+\code{\link{prepare_data}()}
+}
+\concept{utility_functions}
+\keyword{internal}

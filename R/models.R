@@ -1,6 +1,6 @@
 incur_models <- list(
   exponential_growth = list(
-    curve_func = function(x, y0, k) {
+    model_func = function(x, y0, k) {
       y0 * exp(k * x)
     },
     start_func = function(x, y) {
@@ -11,7 +11,7 @@ incur_models <- list(
     }
   ),
   exponential_plateu = list(
-    curve_func = function(x, y0, ym, k) {
+    model_func = function(x, y0, ym, k) {
       ym - (ym - y0) * exp(-k * x)
     },
     start_func = function(x, y) {
@@ -23,7 +23,7 @@ incur_models <- list(
     }
   ),
   four_param_sigmoid = list(
-    curve_func = function(x, top, bottom, ec50, slope) {
+    model_func = function(x, top, bottom, ec50, slope) {
       bottom + (top - bottom) / (1 + ec50 / x)^slope
     },
     start_func = function(x, y) {
@@ -35,7 +35,7 @@ incur_models <- list(
         index <- which.min(abs(y - mid))
         return(x[index])
       }
-      
+
       list(
         bottom = min(y),
         top = max(y),
@@ -45,7 +45,7 @@ incur_models <- list(
     }
   ),
   four_param_sigmoid_log = list(
-    curve_func = function(x, top, bottom, log_ec50, slope) {
+    model_func = function(x, top, bottom, log_ec50, slope) {
       bottom + (top - bottom) / (1 + 10^((log_ec50 - x) * slope))
     },
     start_func = function(x, y) {
@@ -57,7 +57,7 @@ incur_models <- list(
         index <- which.min(abs(y - mid))
         return(x[index])
       }
-      
+
       list(
         bottom = min(y),
         top = max(y),
@@ -67,9 +67,11 @@ incur_models <- list(
     }
   ),
   biphasic_four_param_sigmoid = list(
-    curve_func = function(x, top, bottom, frac, ec50_1, nh1, ec50_2, nh2) {
+    model_func = function(x, top, bottom, frac, ec50_1, nh1, ec50_2, nh2) {
       # bottom + (top - bottom) * frac / (1 + (ec50_1 / x)^slope_1) + (top - bottom) * (1 - frac) / (1 + (ec50_2 / x)^slope_2)
-      bottom + (top - bottom) * frac / (1 + (ec50_1 / x)^nh1) + (top - bottom) * (1 - frac) / (1 + (ec50_2 / x)^nh2)
+      bottom +
+        (top - bottom) * frac / (1 + (ec50_1 / x)^nh1) +
+        (top - bottom) * (1 - frac) / (1 + (ec50_2 / x)^nh2)
     },
     start_func = function(x, y) {
       list(
@@ -84,7 +86,7 @@ incur_models <- list(
     }
   ),
   five_param_sigmoid = list(
-    curve_func = function(x, top, bottom, s, ec50, slope) {
+    model_func = function(x, top, bottom, s, ec50, slope) {
       bottom + (top - bottom) / (1 + (2^(1 / s) - 1) * ((ec50 / x)^slope))^s
     },
     start_func = function(x, y) {
@@ -96,7 +98,7 @@ incur_models <- list(
         index <- which.min(abs(y - mid))
         return(x[index])
       }
-      
+
       list(
         bottom = min(y),
         top = max(y),
@@ -107,8 +109,12 @@ incur_models <- list(
     }
   ),
   five_param_sigmoid_log = list(
-    curve_func = function(x, top, bottom, s, log_ec50, slope) {
-      bottom + (top - bottom) / ((1 + 10^(((log_ec50 + (1 / slope) * log10((2^(1 / s)) - 1)) - x) * slope))^s)
+    model_func = function(x, top, bottom, s, log_ec50, slope) {
+      bottom +
+        (top - bottom) /
+          ((1 +
+            10^(((log_ec50 + (1 / slope) * log10((2^(1 / s)) - 1)) - x) *
+              slope))^s)
     },
     start_func = function(x, y) {
       x_at_y_mid <- function(x, y) {
@@ -119,7 +125,7 @@ incur_models <- list(
         index <- which.min(abs(y - mid))
         return(x[index])
       }
-      
+
       list(
         bottom = min(y),
         top = max(y),
@@ -130,7 +136,7 @@ incur_models <- list(
     }
   ),
   logistic_growth = list(
-    curve_func = function(x, ym, y0, k) {
+    model_func = function(x, ym, y0, k) {
       ym * y0 / ((ym - y0) * exp(-k * x) + y0)
     },
     start_func = function(x, y) {
@@ -142,7 +148,7 @@ incur_models <- list(
     }
   ),
   gompertz_growth = list(
-    curve_func = function(x, ym, y0, k) {
+    model_func = function(x, ym, y0, k) {
       ym * (y0 / ym)^(exp(-k * x))
     },
     start_func = function(x, y) {
@@ -154,7 +160,7 @@ incur_models <- list(
     }
   ),
   beta_growth_decay = list(
-    curve_func = function(x, ym, te, tm) {
+    model_func = function(x, ym, te, tm) {
       ym * (1 + (te - x) / (te - tm)) * (x / te)^(te / (te - tm))
     },
     start_func = function(x, y) {

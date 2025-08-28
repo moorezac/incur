@@ -2,20 +2,64 @@
 % Please edit documentation in R/calculate_gr.R
 \name{calculate_gr}
 \alias{calculate_gr}
-\title{Calculate GR values.}
+\title{Calculate Growth Rate (GR) Values}
 \usage{
-calculate_gr(best_fit_values, group, control_name, cap = TRUE)
+calculate_gr(
+  data,
+  x_var,
+  y_var,
+  share_group,
+  control_name,
+  cap = TRUE,
+  return_all_columns = FALSE
+)
 }
 \arguments{
-\item{best_fit_values}{A fitted \code{nlsLM} object.}
+\item{data}{A data frame containing the time-series data.}
 
-\item{lower}{The lower bound of where to calculate AUC.}
+\item{x_var}{Character string specifying the name of the time variable column.}
 
-\item{upper}{The upper bound of where to calculate AUC.}
+\item{y_var}{Character string specifying the name of the response variable column.}
+
+\item{share_group}{Character string specifying the column name for grouping (e.g., treatment groups).}
+
+\item{control_name}{The value in \code{share_group} that represents the control condition.}
+
+\item{cap}{Logical. If \code{TRUE} (default), cap GR values at 1 to prevent values > 1.}
+
+\item{return_all_columns}{Logical. If \code{TRUE}, return all original columns plus GR values.
+If \code{FALSE} (default), return only original columns plus GR values.}
 }
 \value{
-A list of class \code{integrate} as produced by \code{stats::integrate}.
+A data frame with GR values added. GR = 0 indicates no growth inhibition,
+GR = 1 indicates complete growth inhibition, and GR = -1 indicates cell death.
 }
 \description{
-Calculate GR values from
+Calculate growth rate (GR) values from time-series data, comparing treatment
+groups to a control group. GR values provide a normalized measure of growth
+inhibition that accounts for differences in growth rates between cell lines.
 }
+\details{
+The GR metric normalizes growth inhibition relative to a control condition,
+making it suitable for comparing effects across different cell lines or
+experimental conditions. The calculation uses the formula:
+GR = 2^((log2(normalized_treatment) / log2(normalized_control))) - 1
+}
+\examples{
+\dontrun{
+# Calculate GR values comparing treatments to vehicle control
+gr_data <- calculate_gr(
+  data = cell_data,
+  x_var = "time_hours",
+  y_var = "cell_area",
+  share_group = "treatment",
+  control_name = "vehicle"
+)
+}
+}
+\seealso{
+Other growth_analysis: 
+\code{\link{calc_double_rate_data}()},
+\code{\link{calc_double_rate_passage}()}
+}
+\concept{growth_analysis}

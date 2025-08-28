@@ -2,22 +2,41 @@
 % Please edit documentation in R/double_rate_funcs.R
 \name{calc_double_rate_passage}
 \alias{calc_double_rate_passage}
-\title{Calculate the double rate for known cell numbers over time.}
+\title{Calculate Doubling Time from Passage Data}
 \usage{
 calc_double_rate_passage(start_date, end_date, start_n, end_n)
 }
 \arguments{
-\item{start_date}{The date of the first measurement in format \code{YYYY/MM/DD}.}
+\item{start_date}{Character string or Date object representing the first measurement date in format \code{YYYY-MM-DD}.}
 
-\item{end_date}{The date of the second measurement in format \code{YYYY/MM/DD}.}
+\item{end_date}{Character string or Date object representing the second measurement date in format \code{YYYY-MM-DD}.}
 
-\item{start_n}{Number of cells at first measurement.}
+\item{start_n}{Numeric value for the number of cells at the first measurement.}
 
-\item{end_n}{Number of cells at second measurement.}
+\item{end_n}{Numeric value for the number of cells at the second measurement.}
 }
 \value{
-Doubling in hours.
+Numeric value representing the doubling time in hours.
 }
 \description{
-Calculate the double rate for known cell numbers over time.
+Calculate cell doubling time from known cell counts at two different time points,
+typically from passage data or manual cell counting.
 }
+\details{
+Uses the exponential growth formula to calculate doubling time:
+t_double = (t2 - t1) * ln(2) / ln(N2/N1)
+}
+\examples{
+# Calculate doubling time from passage data
+doubling_hours <- calc_double_rate_passage(
+  start_date = "2024-01-01",
+  end_date = "2024-01-03",
+  start_n = 1e5,
+  end_n = 4e5
+}
+\seealso{
+Other growth_analysis: 
+\code{\link{calc_double_rate_data}()},
+\code{\link{calculate_gr}()}
+}
+\concept{growth_analysis}

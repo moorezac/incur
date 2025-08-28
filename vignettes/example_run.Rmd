@@ -1,14 +1,155 @@
 ---
-title: "example"
+title: "example run"
 author: "Zachery Moore"
-date: "2025-03-03"
-output: html_document
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{example run}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  markdown: 
+    wrap: 80
 ---
 
-Import our data output
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(incur)
+```
+
+```{r include=FALSE}
+knitr::opts_chunk$set(
+  fig.width = unit(7,"cm"), 
+  fig.height = unit(3.5, "cm"), 
+  fig.align = 'center'
+)
+```
 
 ```{r}
-trackmate_data <- import_trackmate_spot_data(
-  paths = here
+double_data <- incur::double_data
+
+ggplot() +
+  geom_point(
+    double_data,
+    mapping = aes(hours_from, area, colour = as.factor(cells_seeded))
+  )
+```
+
+```{r}
+double_model <- incur::fit_model(
+  data = double_data,
+  x_var = "hours_from",
+  y_var = "area",
+  model = "five_param_sigmoid",
+  share_group = "cells_seeded",
+  share_params = c("top", "slope")
+)
+
+incur::plot_model(
+  data = double_model$data,
+  fit = double_model$fit,
+  x_var = "hours_from",
+  y_var = "area"
+)
+```
+
+```{r}
+double_model_outliers <- incur::fit_model(
+  data = double_data,
+  x_var = "hours_from",
+  y_var = "area",
+  model = "five_param_sigmoid",
+  share_group = "cells_seeded",
+  share_params = c("top", "slope"),
+  rout = TRUE
+)
+
+incur::plot_model(
+  data = double_model_outliers$data,
+  fit = double_model_outliers$fit,
+  x_var = "hours_from",
+  y_var = "area"
+)
+```
+
+```{r}
+double_model_predicted <- bind_rows(
+  incur::predict_data(
+    fit = double_model_outliers$fit,
+    lower_x = min(double_data$hours_from),
+    upper_x = max(double_data$hours_from),
+    group = 1000
+  ),
+  incur::predict_data(
+    fit = double_model_outliers$fit,
+    lower_x = min(double_data$hours_from),
+    upper_x = max(double_data$hours_from),
+    group = 2000
+  )
+)
+
+double_model_predicted <- rename(
+  double_model_predicted, 
+  hours_from = x, area = y, cells_seeded = group
+)
+
+incur::calc_double_rate_data(
+  data = double_model_predicted,
+  x_var = "hours_from",
+  y_var = "area",
+  cell_column = "cells_seeded",
+  dimension_factor = 2^(1 / 3)
+)
+```
+
+```{r}
+conc_data <- incur::conc_data
+
+ggplot() +
+  geom_point(
+    conc_data,
+    mapping = aes(hours_from, area, colour = as.factor(concentration))
+  )
+
+conc_data <- mutate(
+  conc_data,
+  exclude = case_when(
+    concentration %in% c(-4, -4.5) ~ TRUE,
+    .default = FALSE
+  )
+)
+```
+
+```{r}
+model_list <- incur:::fit_model_conc(
+  data = conc_data,
+  x_var = "hours_from",
+  y_var = "area",
+  model = "five_param_sigmoid",
+  rout = TRUE
+)
+
+incur:::plot_model_conc(
+  model_list = model_list,
+  x_var = "hours_from",
+  y_var = "area",
+  start_colour = "#0085ca"
+)
+```
+
+```{r}
+incur:::plot_model_conc_gr_time(
+  model_list = model_list,
+  x_var = "hours_from",
+  y_var = "area",
+  start_colour = "#0085ca"
+)
+```
+
+```{r}
+incur:::plot_model_conc_gr_dose(
+  model_list = model_list,
+  x_var = "hours_from",
+  y_var = "area",
+  start_colour = "#0085ca"
 )
 ```

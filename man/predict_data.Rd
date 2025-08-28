@@ -2,24 +2,55 @@
 % Please edit documentation in R/fit_funcs.R
 \name{predict_data}
 \alias{predict_data}
-\title{Predict data from a \code{nls} object over a range of set \code{x} vakyes}
+\title{Generate Predictions from Fitted Model}
 \usage{
 predict_data(fit, lower_x, upper_x, group = NULL, num_points = 1000)
 }
 \arguments{
-\item{fit}{A \code{nls} object}
+\item{fit}{A fitted \code{nls} object from \code{fit_model()}.}
 
-\item{lower_x}{The lower \code{x} value to predict from.}
+\item{lower_x}{The minimum x value for predictions.}
 
-\item{upper_x}{The upper \code{x} value to predict from.}
+\item{upper_x}{The maximum x value for predictions.}
 
-\item{group}{A character vector that contains each unique grouping value used in the initial fit.}
+\item{group}{Optional character vector of group values for shared parameter models.}
 
-\item{num_points}{How many points to predict values between \code{lower_x} and \code{upper_x}}
+\item{num_points}{Number of prediction points between lower_x and upper_x (default: 1000).}
 }
 \value{
-Either a fitted \code{nls} object if expression is evaluated without error, or an invisible object with class \code{try-error}
+A tibble containing:
+\describe{
+\item{x}{Prediction x values}
+\item{y}{Predicted y values}
+\item{group}{Group identifier (if applicable)}
+}
 }
 \description{
-This function can be used to predict a range of values between set points, and further set the precise number of values between said points. This assumes the \code{fit} object takes values in terms of \code{x}.
+Generate smooth prediction curves from fitted models over a specified range
+of x values. Supports both single models and grouped models with shared parameters.
 }
+\examples{
+\dontrun{
+# Generate smooth prediction curve
+predictions <- predict_data(
+  fit = growth_fit,
+  lower_x = 0,
+  upper_x = 100,
+  num_points = 500
+)
+
+# For grouped model
+predictions <- predict_data(
+  fit = grouped_fit,
+  lower_x = 0,
+  upper_x = 100,
+  group = c("cell_line_A", "cell_line_B")
+)
+}
+}
+\seealso{
+Other model_analysis: 
+\code{\link{calculate_auc}()},
+\code{\link{find_x_for_y}()}
+}
+\concept{model_analysis}

@@ -2,20 +2,30 @@
 % Please edit documentation in R/shared_parameter_funcs.R
 \name{make_shared_formals}
 \alias{make_shared_formals}
-\title{Make shared function formals across arguments and individual groups.}
+\title{Create Function Arguments for Shared Parameter Models}
 \usage{
-make_shared_formals(func, group, params)
+make_shared_formals(func, group_vec, share_params)
 }
 \arguments{
-\item{func}{A function for which arguments are to be modified.}
+\item{group_vec}{Character vector of unique group identifiers.}
 
-\item{group}{A character vector that contains all unique grouping values.}
+\item{share_params}{Character vector of parameter names to share across groups.}
 
-\item{params}{A character vector of arguments in \code{func} that are to be shared across \code{groups}.}
+\item{model_func}{A function defining the mathematical model.}
 }
 \value{
-An \code{pairlist} object that that can be used to create a new function
+A pairlist object suitable for creating a new function with
+group-specific parameters.
 }
 \description{
-From a provided function, modify arguments so that shared parameters are replaced in the form \verb{\{argument\}_\{group\}}.
+Modify function formal arguments to support shared parameters across groups
+by creating group-specific parameter names for non-shared parameters.
 }
+\seealso{
+Other shared_parameters: 
+\code{\link{make_shared_body}()},
+\code{\link{make_shared_start_values}()},
+\code{\link{prepare_shared_parameters}()}
+}
+\concept{shared_parameters}
+\keyword{internal}
