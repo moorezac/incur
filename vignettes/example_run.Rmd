@@ -1,7 +1,7 @@
 ---
 title: "example run"
 author: "Zachery Moore"
-output: rmarkdown::html_vignette
+output: BiocStyle::html_document
 vignette: >
   %\VignetteIndexEntry{example run}
   %\VignetteEncoding{UTF-8}
@@ -25,7 +25,7 @@ knitr::opts_chunk$set(
 ```
 
 ```{r}
-double_data <- incur::double_data
+data("double_data")
 
 ggplot() +
   geom_point(
@@ -102,7 +102,7 @@ incur::calc_double_rate_data(
 ```
 
 ```{r}
-conc_data <- incur::conc_data
+data("conc_data")
 
 ggplot() +
   geom_point(
@@ -152,4 +152,8 @@ incur:::plot_model_conc_gr_dose(
   y_var = "area",
   start_colour = "#0085ca"
 )
+```
+
+```{r}
+sessionInfo()
 ```

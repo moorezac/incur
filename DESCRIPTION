@@ -2,9 +2,9 @@ Package: incur
 Type: Package
 Title: Analyse IncuCyte-derived and time-course dose-response expereiments.
 Decsription: A software package designed for analysing IncuCyte-derived data, with a strong focus on generalisable and automated non-linear regression for interpretation of growth curves and dose-response relationships.
-Version: 0.0.0.9000
-Authors: 
-    person("Zachery", "Moore", email = "moore.z@wehi.edu.au", role = c("aut", "cre"), comment = c(ORCID = 0000-0002-0898-0483))
+Version: 0.99.0
+Authors@R: 
+    person("Zachery", "Moore", email = "moore.z@wehi.edu.au", role = c("aut", "cre"), comment = c(ORCID = "0000-0002-0898-0483"))
 Imports: 
     dplyr,
     rlang (>= 1.1.0),
@@ -13,12 +13,23 @@ Imports:
     readr,
     stringr,
     tidyr,
-    tidyselect
+    tidyselect,
+    checkmate, 
+    geomtextpath,
+    ggplot2, 
+    inflection, 
+    patchwork, 
+    scales, 
+    stats, 
+    tibble, 
+    tinter
 URL: https://github.com/moorezac/incur
-License: use_gpl3_license()
+License: GPL-3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
-Depends: 
-    R (>= 3.5)
-LazyData: true
+Depends: R (>= 4.2.0)
+LazyData: false
+biocViews: Software, StatisticalMethod, Visualization
+Suggests: knitr, rmarkdown
+VignetteBuilder: knitr

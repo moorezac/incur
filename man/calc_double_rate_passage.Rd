@@ -27,12 +27,15 @@ Uses the exponential growth formula to calculate doubling time:
 t_double = (t2 - t1) * ln(2) / ln(N2/N1)
 }
 \examples{
+\dontrun{
 # Calculate doubling time from passage data
 doubling_hours <- calc_double_rate_passage(
   start_date = "2024-01-01",
   end_date = "2024-01-03",
   start_n = 1e5,
   end_n = 4e5
+)
+}
 }
 \seealso{
 Other growth_analysis: 
