@@ -1,0 +1,21 @@
+---
+title: "Cell Line Authentication"
+author: "Zachery Moore"
+output: BiocStyle::html_document
+vignette: >
+  %\VignetteIndexEntry{Cell Line Authentication}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  markdown: 
+    wrap: 80
+---
+
+```{r include=FALSE}
+knitr::opts_chunk$set(
+  fig.width = ggplot2::unit(7,"cm"), 
+  fig.height = ggplot2::unit(3.5, "cm"), 
+  fig.align = 'center'
+)
+```
+

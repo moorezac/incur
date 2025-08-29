@@ -1,9 +1,9 @@
 ---
-title: "example run"
+title: "Cell Growth Curve Analysis"
 author: "Zachery Moore"
 output: BiocStyle::html_document
 vignette: >
-  %\VignetteIndexEntry{example run}
+  %\VignetteIndexEntry{Cell Growth Curve Analysis}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
@@ -11,18 +11,31 @@ editor_options:
     wrap: 80
 ---
 
+```{r include=FALSE}
+knitr::opts_chunk$set(
+  fig.width = ggplot2::unit(7,"cm"), 
+  fig.height = ggplot2::unit(3.5, "cm"), 
+  fig.align = 'center'
+)
+```
+
+# Objective
+
+The `incur` package provides tools for analyzing cell growth curves and dose-response relationships. This vignette demonstrates 
+the main functionality using example datasets included with the package.
+
+# Loading and Visualizing Data
+
+First, load the required packages.
+
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 library(tidyverse)
 library(incur)
 ```
 
-```{r include=FALSE}
-knitr::opts_chunk$set(
-  fig.width = unit(7,"cm"), 
-  fig.height = unit(3.5, "cm"), 
-  fig.align = 'center'
-)
-```
+The package includes sample datasets to help you get started. The `double_data` dataset contains longitudinal measurements of spheroid area acquired using the IncuCyte at two different seeding densities. Let's start by visualizing the raw data to understand the growth patterns. We'll plot cell area over time, colored by the initial number of cells seeded.
+
+The plot shows the expected exponential growth curves for both seeding densities, with the higher seeding density (2000 cells) reaching greater final areas than the lower density (1000 cells).
 
 ```{r}
 data("double_data")
@@ -33,6 +46,10 @@ ggplot() +
     mapping = aes(hours_from, area, colour = as.factor(cells_seeded))
   )
 ```
+
+# Fitting Growth Models
+
+The `incur` package provides several models to fit growth curves. Here we are usign `five_param_sigmoid`. These models can share parameters between different experimental groups to improve fitting stability. The `share_group` parameter specifies which column contains the grouping variable (seeding density), while `share_params` indicates which model parameters should be shared between groups. Here we share the "top" (maximum growth) and "slope" parameters.
 
 ```{r}
 double_model <- incur::fit_model(
@@ -52,6 +69,9 @@ incur::plot_model(
 )
 ```
 
+# Handling Outliers
+Real experimental data often contains outliers that can affect model fitting. The `incur` package includes robust outlier detection by setting `rout = TRUE`. The outlier detection algorithm identifies and removes data points that don't fit the expected growth pattern, resulting in cleaner model fits. The plot shows the fitted curves with outliers highlighted. Notice how the outlier-robust fitting produces smoother curves and better captures the underlying growth dynamics.
+
 ```{r}
 double_model_outliers <- incur::fit_model(
   data = double_data,
@@ -70,6 +90,9 @@ incur::plot_model(
   y_var = "area"
 )
 ```
+
+# Calculating Doubling Times
+One of the key metrics for cell growth analysis is the doubling time. The `incur` package can calculate this from fitted models. The `calc_double`_rate_data function uses the fitted model to predict growth curves and calculates the doubling time. The dimension_factor parameter accounts for the relationship between sphere area and sphere volume (assuming spherical spheroids, the factor is 2^(1/3)). If using on confluence or actual counts this can be kept at 1. The function also generates a diagnostic plot showing the growth curves and the points used for doubling time calculation.
 
 ```{r}
 double_model_predicted <- bind_rows(
@@ -101,6 +124,10 @@ incur::calc_double_rate_data(
 )
 ```
 
+# Dose-Response Analysis
+
+The `incur` package also supports dose-response analysis. Let's load the concentration-response dataset. This dataset contains spheroid area measurements at different drug concentrations. Let's visualize the data:
+
 ```{r}
 data("conc_data")
 
@@ -109,7 +136,11 @@ ggplot() +
     conc_data,
     mapping = aes(hours_from, area, colour = as.factor(concentration))
   )
+```
 
+For dose-response analysis, you may want to exclude certain concentrations from the analysis. Here we exclude the highest concentrations (-4 and -4.5 log M) which represent complete killing of the spheres. The area measurements here are a result of poor segmentation.
+
+```{r}
 conc_data <- mutate(
   conc_data,
   exclude = case_when(
@@ -119,8 +150,12 @@ conc_data <- mutate(
 )
 ```
 
+# Fitting Dose-Response Models
+
+The package provides specialized functions for concentration-response analysis. The `fit_model_conc` function applies the same model to a dataframe with a `concentration` column. The package offers several visualization options for dose-response data as well:
+
 ```{r}
-model_list <- incur:::fit_model_conc(
+model_list <- incur::fit_model_conc(
   data = conc_data,
   x_var = "hours_from",
   y_var = "area",
@@ -128,13 +163,15 @@ model_list <- incur:::fit_model_conc(
   rout = TRUE
 )
 
-incur:::plot_model_conc(
+incur::plot_model_conc(
   model_list = model_list,
   x_var = "hours_from",
   y_var = "area",
   start_colour = "#0085ca"
 )
 ```
+
+This plot shows how growth rates vary with time and concentration. The growth rate analysis reveals how different concentrations affect the rate of cell growth throughout the experiment.
 
 ```{r}
 incur:::plot_model_conc_gr_time(
@@ -145,11 +182,14 @@ incur:::plot_model_conc_gr_time(
 )
 ```
 
+Finally, we can visualize the classic dose-response relationship. This plot shows the relationship between drug concentration and growth inhibition, with the characteristic sigmoid curve that's fundamental to pharmacological analysis.
+
 ```{r}
-incur:::plot_model_conc_gr_dose(
+incur::plot_model_conc_gr_dose(
   model_list = model_list,
   x_var = "hours_from",
   y_var = "area",
+  model = "five_param_sigmoid_log",
   start_colour = "#0085ca"
 )
 ```

@@ -16,7 +16,6 @@
 #' @importFrom readr write_tsv
 #' @importFrom stringr str_c
 #' @importFrom rlang sym
-#' @export
 #'
 #' @examples
 #' \dontrun{
@@ -69,7 +68,6 @@ make_temp_data <- function(data, filter_chr, sample) {
 #'
 #' @family copy_number_analysis
 #' @importFrom rlang is_null exec
-#' @export
 #'
 #' @examples
 #' \dontrun{
@@ -145,6 +143,39 @@ execute_ascat <- function(
   list(ascat_seg = ascat_seg, ascat_res = ascat_res)
 }
 
+#' Count SNP Probes Within Genomic Segment
+#'
+#' @description
+#' Count the number of SNP probes that fall within a specified genomic segment,
+#' used for assessing segment reliability in copy number analysis.
+#'
+#' @param segment A single row data frame or list containing segment information
+#'   with columns: chr, startpos, endpos.
+#' @param snp_pos A data frame containing SNP position information with columns:
+#'   chr, pos.
+#'
+#' @return Integer value representing the number of SNP probes within the segment boundaries.
+#'
+#' @details
+#' This function filters SNP positions to the specified chromosome and then
+#' counts how many fall within the segment boundaries (inclusive). Segments
+#' with very few probes (< 10) may be less reliable for copy number calling.
+#'
+#' @family copy_number_analysis
+#' @importFrom dplyr filter between
+#' @keywords internal
+#'
+#' @examples
+#' \dontrun{
+#' # Count probes in a specific segment
+#' segment_data <- data.frame(
+#'   chr = 1,
+#'   startpos = 1000000,
+#'   endpos = 2000000
+#' )
+#'
+#' probe_count <- count_probes_in_segment(segment_data, snp_positions)
+#' }
 count_probes_in_segment <- function(segment, snp_pos) {
   snp_pos <- dplyr::filter(snp_pos, chr == segment$chr)
   snp_pos <- dplyr::filter(
@@ -347,6 +378,70 @@ run_snp_pipeline <- function(
   }
 }
 
+#' Calculate Pairwise SNP Correlations with Clustering Visualization
+#'
+#' @description
+#' Calculate pairwise correlations between SNP array samples based on B-allele
+#' frequency (BAF) values, perform hierarchical clustering, and create a
+#' publication-ready heatmap with dendrograms for sample authentication and
+#' quality control.
+#'
+#' @param data_list A named list of data frames, each representing a sample
+#'   with SNP array data. Each data frame must contain a `baf` column with
+#'   B-allele frequency values.
+#'
+#' @return A list containing:
+#' \describe{
+#'   \item{data}{Data frame with pairwise correlation values between all samples}
+#'   \item{heatmap}{ggplot object showing correlation heatmap with dendrograms}
+#' }
+#'
+#' @details
+#' This function is essential for SNP array quality control and sample authentication:
+#' \itemize{
+#'   \item Calculates Pearson correlations between all sample pairs using BAF values
+#'   \item Handles missing values with pairwise complete observations
+#'   \item Performs hierarchical clustering using (1 - correlation) as distance
+#'   \item Creates symmetric correlation matrix with diagonal values = 1
+#'   \item Generates clustered heatmap with row and column dendrograms
+#'   \item Orders samples by clustering results for optimal visualization
+#' }
+#'
+#' High correlations (> 0.95) typically indicate:
+#' \itemize{
+#'   \item Same biological sample analyzed multiple times
+#'   \item Closely related samples (e.g., tumor/normal pairs)
+#' }
+#'
+#' @family copy_number_analysis
+#' @importFrom utils combn
+#' @importFrom tibble as_tibble tibble column_to_rownames
+#' @importFrom purrr map2_dbl
+#' @importFrom dplyr mutate bind_rows rename
+#' @importFrom tidyr pivot_wider
+#' @importFrom stats cor hclust dist
+#' @importFrom ggplot2 ggplot aes geom_tile scale_fill_gradient guides guide_colorbar scale_y_discrete theme_minimal theme element_text element_blank unit
+#' @importFrom ggdendro ggdendrogram
+#' @importFrom patchwork wrap_plots plot_spacer
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' # Calculate correlations between SNP samples
+#' correlation_result <- snp_correlate(snp_data_list)
+#'
+#' # View correlation data
+#' head(correlation_result$data)
+#'
+#' # Display heatmap
+#' print(correlation_result$heatmap)
+#'
+#' # Identify highly correlated samples (potential duplicates)
+#' high_corr <- correlation_result$data[
+#'   correlation_result$data$corr > 0.95 &
+#'   correlation_result$data$a != correlation_result$data$b,
+#' ]
+#' }
 snp_correlate <- function(data_list) {
   # Get unique combinations
   combinations <- utils::combn(names(data_list), 2)
@@ -446,6 +541,72 @@ snp_correlate <- function(data_list) {
   list(data = combinations, heatmap = gg_final)
 }
 
+#' Create Copy Number Profile Plots from ASCAT Segments
+#'
+#' @description
+#' Generate publication-ready copy number profile plots from ASCAT segmentation
+#' results, showing absolute copy number across all chromosomes with event
+#' classification and sample metadata.
+#'
+#' @param path Character string specifying the directory containing ASCAT segment
+#'   files (files ending in "_segments.csv").
+#'
+#' @return A named list of ggplot objects, one for each sample, showing:
+#' \itemize{
+#'   \item Absolute copy number segments across chromosomes
+#'   \item Color-coded copy number events (amplifications, deletions, LOH, etc.)
+#'   \item Sample ploidy and tumor purity information
+#'   \item Chromosome-wise layout with appropriate scaling
+#'   \item Amplification labels for high-level events (> 6 copies)
+#' }
+#'
+#' @details
+#' The function automatically:
+#' \itemize{
+#'   \item Reads all "_segments.csv" files from the specified directory
+#'   \item Calculates total copy number (nMajor + nMinor)
+#'   \item Classifies copy number events:
+#'     \itemize{
+#'       \item Neutral: 1+1 (normal diploid)
+#'       \item Loss: 1+0 or 0+1 (hemizygous deletion)
+#'       \item Deletion: 0+0 (homozygous deletion)
+#'       \item LOH: 2+0 or 0+2 (loss of heterozygosity)
+#'       \item Gain: total > 2 (low-level amplification)
+#'       \item Balanced Gain: equal alleles, total > 2
+#'       \item Amplification: total > 6 (high-level amplification)
+#'     }
+#'   \item Applies appropriate color scheme for each event type
+#'   \item Handles amplification labeling with text annotations
+#'   \item Scales plots appropriately for chromosome lengths
+#' }
+#'
+#' @family copy_number_analysis
+#' @importFrom purrr imap map
+#' @importFrom readr read_csv
+#' @importFrom dplyr group_by filter mutate row_number n distinct ungroup case_when lead
+#' @importFrom stringr str_remove str_c
+#' @importFrom ggplot2 ggplot geom_segment scale_x_continuous scale_y_continuous scale_colour_manual labs ggtitle theme element_blank element_rect element_text element_line unit facet_wrap vars
+#' @importFrom ggrepel geom_text_repel
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' # Create copy number plots from ASCAT results
+#' cn_plots <- plot_snp("path/to/ascat/results/")
+#'
+#' # Display plot for first sample
+#' print(cn_plots[[1]])
+#'
+#' # Save plots
+#' purrr::iwalk(cn_plots, function(plot, sample_name) {
+#'   ggsave(
+#'     filename = paste(sample_name, "copy_number.pdf"),
+#'     plot = plot,
+#'     width = 12,
+#'     height = 6
+#'   )
+#' })
+#' }
 plot_snp <- function(path) {
   # Get list of segment files
   paths <- dir(
