@@ -47,9 +47,9 @@ print(conc_plot)
 }
 \seealso{
 Other visualization: 
-\code{\link{font_size}},
 \code{\link{plot_model}()},
 \code{\link{plot_model_conc_gr_dose}()},
-\code{\link{plot_model_conc_gr_time}()}
+\code{\link{plot_model_conc_gr_time}()},
+\code{\link{theme_incur}()}
 }
 \concept{visualization}

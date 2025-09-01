@@ -161,7 +161,7 @@ plot_model_conc <- function(
     ) +
     ggplot2::labs(x = x_var, y = y_var) +
     ggplot2::guides(colour = NULL) +
-    theme_incur
+    theme_incur()
 }
 
 #' Plot GR Values Over Time for Concentration Series
@@ -335,7 +335,7 @@ plot_model_conc_gr_time <- function(
     ) +
     ggplot2::guides(colour = NULL) +
     ggplot2::labs(x = x_var, y = "GR") +
-    theme_incur
+    theme_incur()
 
   list(data = fitted, plot = gg)
 }
@@ -551,5 +551,5 @@ plot_model_conc_gr_dose <- function(
       yintercept = 0
     ) +
     ggplot2::labs(x = "Concentration", y = "GR") +
-    theme_incur
+    theme_incur()
 }

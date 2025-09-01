@@ -123,10 +123,11 @@ execute_ascat <- function(
     ascat_seg <- rlang::exec(
       ASCAT::ascat.aspcf,
       ASCATobj = ascat_obj,
+      out.dir = output_dir,
       !!!opts_aspcf
     )
   } else {
-    ascat_seg <- ASCAT::ascat.aspcf(ascat_obj)
+    ascat_seg <- ASCAT::ascat.aspcf(ascat_obj, out.dir = output_dir)
   }
 
   # Run ASCAT
@@ -226,7 +227,7 @@ process_segments <- function(ascat_seg, ascat_res, sample, output_dir) {
 #' @param opts_correctLogR List of LogR correction options.
 #' @param opts_aspcf List of ASPCF segmentation options.
 #' @param opts_runAscat List of ASCAT execution options.
-#' @param snp_platform SNP array platform identifier.
+#' @param snp_platform SNP array platform identifier for when germline is not provided.
 #' @param return_ascat Logical indicating whether to return ASCAT objects.
 #'
 #' @return Either invisible (default) or list of ASCAT results (if return_ascat = TRUE).
@@ -265,7 +266,7 @@ process_segments <- function(ascat_seg, ascat_res, sample, output_dir) {
 run_snp_pipeline <- function(
   data_test_list,
   data_germline_list = NULL,
-  filter_chr,
+  filter_chr = c("X", "Y", "MT", "XY", "0"),
   output_dir,
   opts_correctLogR = NULL,
   opts_aspcf = NULL,
@@ -428,7 +429,7 @@ run_snp_pipeline <- function(
 #' @examples
 #' \dontrun{
 #' # Calculate correlations between SNP samples
-#' correlation_result <- snp_correlate(snp_data_list)
+#' correlation_result <- correlate_snp(snp_data_list)
 #'
 #' # View correlation data
 #' head(correlation_result$data)
@@ -442,7 +443,7 @@ run_snp_pipeline <- function(
 #'   correlation_result$data$a != correlation_result$data$b,
 #' ]
 #' }
-snp_correlate <- function(data_list) {
+correlate_snp <- function(data_list) {
   # Get unique combinations
   combinations <- utils::combn(names(data_list), 2)
   combinations <- tibble::as_tibble(t(combinations), .name_repair = \(x) {
@@ -454,6 +455,27 @@ snp_correlate <- function(data_list) {
     combinations$a,
     combinations$b,
     function(a, b) {
+      # Required column names
+      required <- "baf"
+      if (!any(required %in% colnames(data_list[[a]]))) {
+        missing <- required[!required %in% colnames(a)]
+        stop(str_c(
+          stringr::str_glue(
+            "Required column(s) not found in {a}: "
+          ),
+          stringr::str_flatten_comma(missing)
+        ))
+      }
+      if (!any(required %in% colnames(data_list[[b]]))) {
+        missing <- required[!required %in% colnames(b)]
+        stop(str_c(
+          stringr::str_glue(
+            "Required column(s) not found in {b}: "
+          ),
+          stringr::str_flatten_comma(missing)
+        ))
+      }
+
       stats::cor(
         data_list[[a]]$baf,
         data_list[[b]]$baf,

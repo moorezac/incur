@@ -43,3 +43,12 @@
 #' @format A data frame with time-series cell growth data
 #' @family example_data
 "double_data"
+
+#' Example SNP Dataset
+#'
+#' A sample dataset for demonstrating cell line authentication
+#' functions.
+#'
+#' @format A named list with SNP array data
+#' @family example_data
+"snp_data"

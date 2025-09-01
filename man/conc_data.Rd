@@ -16,7 +16,8 @@ for use with incur modeling functions.
 }
 \seealso{
 Other example_data: 
-\code{\link{double_data}}
+\code{\link{double_data}},
+\code{\link{snp_data}}
 }
 \concept{example_data}
 \keyword{datasets}

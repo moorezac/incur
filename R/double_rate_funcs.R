@@ -288,10 +288,10 @@ calc_double_rate_data <- function(
         x_var
       )) +
       ggplot2::theme(aspect.ratio = 1) +
-      theme_incur,
+      theme_incur(),
     gg_log +
       ggplot2::theme(aspect.ratio = 1) +
-      theme_incur,
+      theme_incur(),
     guides = "collect",
     axes = "collect"
   )

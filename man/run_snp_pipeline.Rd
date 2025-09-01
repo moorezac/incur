@@ -7,7 +7,7 @@
 run_snp_pipeline(
   data_test_list,
   data_germline_list = NULL,
-  filter_chr,
+  filter_chr = c("X", "Y", "MT", "XY", "0"),
   output_dir,
   opts_correctLogR = NULL,
   opts_aspcf = NULL,
@@ -32,7 +32,7 @@ SNP data with required columns: name, chr, pos, baf, lrr.}
 
 \item{opts_runAscat}{List of ASCAT execution options.}
 
-\item{snp_platform}{SNP array platform identifier.}
+\item{snp_platform}{SNP array platform identifier for when germline is not provided.}
 
 \item{return_ascat}{Logical indicating whether to return ASCAT objects.}
 }
@@ -72,10 +72,10 @@ run_snp_pipeline(
 }
 \seealso{
 Other copy_number_analysis: 
+\code{\link{correlate_snp}()},
 \code{\link{count_probes_in_segment}()},
 \code{\link{execute_ascat}()},
 \code{\link{make_temp_data}()},
-\code{\link{plot_snp}()},
-\code{\link{snp_correlate}()}
+\code{\link{plot_snp}()}
 }
 \concept{copy_number_analysis}

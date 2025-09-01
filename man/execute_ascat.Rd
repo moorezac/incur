@@ -64,10 +64,10 @@ ascat_results <- execute_ascat(
 }
 \seealso{
 Other copy_number_analysis: 
+\code{\link{correlate_snp}()},
 \code{\link{count_probes_in_segment}()},
 \code{\link{make_temp_data}()},
 \code{\link{plot_snp}()},
-\code{\link{run_snp_pipeline}()},
-\code{\link{snp_correlate}()}
+\code{\link{run_snp_pipeline}()}
 }
 \concept{copy_number_analysis}

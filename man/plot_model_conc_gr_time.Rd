@@ -53,9 +53,9 @@ gr_data <- gr_time_result$data
 }
 \seealso{
 Other visualization: 
-\code{\link{font_size}},
 \code{\link{plot_model}()},
 \code{\link{plot_model_conc}()},
-\code{\link{plot_model_conc_gr_dose}()}
+\code{\link{plot_model_conc_gr_dose}()},
+\code{\link{theme_incur}()}
 }
 \concept{visualization}

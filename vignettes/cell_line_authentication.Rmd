@@ -1,9 +1,9 @@
 ---
-title: "Cell Line Authentication"
+title: "Cell Line Authentication from SNP Data"
 author: "Zachery Moore"
 output: BiocStyle::html_document
 vignette: >
-  %\VignetteIndexEntry{Cell Line Authentication}
+  %\VignetteIndexEntry{Cell Line Authentication from SNP Data}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
@@ -13,9 +13,119 @@ editor_options:
 
 ```{r include=FALSE}
 knitr::opts_chunk$set(
-  fig.width = ggplot2::unit(7,"cm"), 
-  fig.height = ggplot2::unit(3.5, "cm"), 
+  fig.width = ggplot2::unit(7,"cm"),
+  fig.height = ggplot2::unit(3.5, "cm"),
   fig.align = 'center'
 )
 ```
 
+# Introduction
+
+Cell line authentication is a critical quality control step in research to ensure the integrity and identity of cell lines used in experiments. Cross-contamination and misidentification of cell lines can lead to irreproducible research results and wasted resources.
+
+The `incur` package provides a comprehensive toolkit for authenticating cell lines using Single Nucleotide Polymorphism (SNP) array data. This vignette demonstrates how to use incur to:
+
+1. Compare SNP profiles between different samples
+2. Calculate correlation coefficients to assess sample similarity
+3. Generate copy number variation (CNV) profiles
+4. Create visualizations for quality assessment
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(incur)
+```
+
+# Import Data
+
+The `incur` package expects SNP data in a specific tibble format with the following columns:
+
+name: SNP identifier (e.g., "1:103380393")
+pos: Genomic position
+chr: Chromosome number/name
+lrr: Log R Ratio values
+baf: B Allele Frequency values
+
+```{r}
+data("snp_data")
+
+snp_data$GBM_1064_TIS
+```
+
+The sample data contains SNP information for multiple samples:
+
+GBM_1064_TIS: Tissue sample
+GBM_1064_BLD: Blood/germline sample
+GBM_1064_PDN: Patient-derived neurosphere (cell line) sample
+GBM_1030_TIS: Additional tissue sample for comparison
+
+# Correlation
+
+Calculate pairwise correlations between all samples to identify potential matches or contamination:
+
+```{r}
+incur::correlate_snp(data_list = snp_data)
+```
+
+## Interpreting Correlation Results:
+
+Correlation ≥ 0.95: Strong evidence samples are from the same individual
+Correlation 0.80-0.94: Possible relationship (e.g., related individuals)
+Correlation < 0.80: Likely different individuals
+
+In our example:
+
+GBM_1064_BLD vs GBM_1064_TIS: r = 0.994 (same patient)
+GBM_1064_BLD vs GBM_1064_PDN: r = 0.991 (same patient)
+GBM_1030_TIS vs other GBM_1064 samples: r ≈ 0.77-0.78 (different patient)
+
+# SNP Pipeline Analysis (With Germline Reference)
+
+When germline DNA is available, use it as a reference to identify somatic alterations.
+
+Note: for this vignette we are saving results to a temporary, but when running on your own samples be sure to specify where you would like the results to be saved.
+
+```{r}
+out_path <- tempdir()
+
+incur::run_snp_pipeline(
+  data_test_list = list(
+    TIS = snp_data$GBM_1064_TIS,
+    PDN = snp_data$GBM_1064_PDN
+  ),
+  data_germline_list = list(
+    BLD = snp_data$GBM_1064_BLD
+    ),
+  output_dir = out_path
+)
+```
+
+# SNP Pipeline Analysis (Without Germline Reference)
+It is highly recommended that germline samples be run. If not available, `incur`/`ASCAT` can infer a germline reference from a range of supported microarrays. See the help page for  `ASCAT::ascat.predictGermlineGenotypes()` for more information. These samples were run on the Illumina GSAv3.
+
+```{r}
+incur::run_snp_pipeline(
+  data_test_list = list(
+    TIS_NO_GERM = snp_data$GBM_1064_TIS,
+    PDN_NO_GERM = snp_data$GBM_1064_PDN
+  ),
+  snp_platform = "IlluminaGSAv3",
+  output_dir = out_path
+)
+```
+
+# Visualization
+
+Generate comprehensive plots showing copy number profiles across chromosomes:
+
+```{r}
+incur::plot_snp(path = out_path)
+```
+
+Key Metrics:
+
+Ploidy: Overall chromosome number (displayed in plot title)
+Tumor Purity: Estimated fraction of tumor cells in sample
+
+```{r}
+sessionInfo()
+```

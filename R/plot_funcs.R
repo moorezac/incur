@@ -113,5 +113,5 @@ plot_model <- function(data, fit, x_var, y_var, return_data = FALSE) {
         ggplot2::guides(shape = ggplot2::guide_legend("Outlier"))
       }
     } +
-    theme_incur
+    theme_incur()
 }

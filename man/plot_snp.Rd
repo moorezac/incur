@@ -66,10 +66,10 @@ purrr::iwalk(cn_plots, function(plot, sample_name) {
 }
 \seealso{
 Other copy_number_analysis: 
+\code{\link{correlate_snp}()},
 \code{\link{count_probes_in_segment}()},
 \code{\link{execute_ascat}()},
 \code{\link{make_temp_data}()},
-\code{\link{run_snp_pipeline}()},
-\code{\link{snp_correlate}()}
+\code{\link{run_snp_pipeline}()}
 }
 \concept{copy_number_analysis}

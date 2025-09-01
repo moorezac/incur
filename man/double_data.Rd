@@ -16,7 +16,8 @@ and growth analysis functions.
 }
 \seealso{
 Other example_data: 
-\code{\link{conc_data}}
+\code{\link{conc_data}},
+\code{\link{snp_data}}
 }
 \concept{example_data}
 \keyword{datasets}
