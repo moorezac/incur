@@ -113,7 +113,8 @@ execute_ascat <- function(
   if (rlang::is_null(germline_lrr_path)) {
     gg <- ASCAT::ascat.predictGermlineGenotypes(
       ascat_obj,
-      platform = snp_platform
+      platform = snp_platform,
+      img.dir = output_dir
     )
     opts_aspcf <- append(opts_aspcf, list(ascat.gg = gg))
   }
