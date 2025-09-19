@@ -345,9 +345,9 @@ run_snp_pipeline <- function(
         germline_baf_path,
         filter_chr,
         output_dir,
-        opts_correctLogR = NULL,
-        opts_aspcf = NULL,
-        opts_runAscat = NULL,
+        opts_correctLogR,
+        opts_aspcf,
+        opts_runAscat,
         snp_platform = snp_platform
       )
     })
