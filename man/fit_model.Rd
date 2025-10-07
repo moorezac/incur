@@ -8,7 +8,7 @@ fit_model(
   data,
   x_var,
   y_var,
-  model,
+  model = NULL,
   model_func = NULL,
   start_func = NULL,
   start_values = NULL,

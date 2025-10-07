@@ -88,10 +88,10 @@ execute_ascat <- function(
   germline_baf_path,
   filter_chr,
   output_dir,
-  opts_correctLogR = NULL,
-  opts_aspcf = NULL,
-  opts_runAscat = NULL,
-  snp_platform = NULL
+  opts_correctLogR,
+  opts_aspcf,
+  opts_runAscat,
+  snp_platform
 ) {
   # Load data
   ascat_obj <- ASCAT::ascat.loadData(
@@ -113,8 +113,7 @@ execute_ascat <- function(
   if (rlang::is_null(germline_lrr_path)) {
     gg <- ASCAT::ascat.predictGermlineGenotypes(
       ascat_obj,
-      platform = snp_platform,
-      img.dir = output_dir
+      platform = snp_platform
     )
     opts_aspcf <- append(opts_aspcf, list(ascat.gg = gg))
   }
@@ -136,7 +135,7 @@ execute_ascat <- function(
     ascat_res <- rlang::exec(
       ASCAT::ascat.runAscat,
       ASCATobj = ascat_seg,
-      !!!opts_aspcf
+      !!!opts_runAscat
     )
   } else {
     ascat_res <- ASCAT::ascat.runAscat(ascat_seg, img.dir = output_dir)
@@ -346,7 +345,7 @@ run_snp_pipeline <- function(
         germline_baf_path,
         filter_chr,
         output_dir,
-        opts_correctLogR,
+        opts_correctLogR = opts_correctLogR,
         opts_aspcf,
         opts_runAscat,
         snp_platform = snp_platform

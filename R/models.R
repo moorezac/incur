@@ -40,7 +40,8 @@ incur_models <- list(
         bottom = min(y),
         top = max(y),
         ec50 = x_at_y_mid(x, y),
-        slope = sign(mean(y[x %in% max(x)]) - mean(y[x %in% min(x)]))
+        # slope = sign(mean(y[x %in% max(x)]) - mean(y[x %in% min(x)]))
+        slope = 1
       )
     }
   ),
