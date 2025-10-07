@@ -7,7 +7,7 @@ A software package designed for analyzing IncuCyte-derived data, with a strong f
 You can install incur via:
 
 ```{r}
-remote::install_github("moorezac/incur")
+remotes::install_github("moorezac/incur")
 ```
 
 ## Usage
