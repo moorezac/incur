@@ -77,10 +77,7 @@ prepare_data <- function(data, x_var, y_var) {
       y = !!sym(y_var)
     ) |>
     tidyr::drop_na(x, y) |>
-    dplyr::mutate(
-      x = as.numeric(x),
-      y = as.numeric(y)
-    ) |>
+    dplyr::mutate(x = as.numeric(x), y = as.numeric(y)) |>
     dplyr::relocate(x, y)
 }
 
