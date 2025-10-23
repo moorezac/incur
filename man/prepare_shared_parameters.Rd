@@ -26,9 +26,9 @@ prepare_shared_parameters(
 \value{
 A list containing:
 \describe{
-\item{[\link{1}]}{Modified data frame with standardized group column}
-\item{[\link{2}]}{Modified model function with shared parameter support}
-\item{[\link{3}]}{Starting parameter values for the shared parameter model}
+\item{Modified data frame with standardized group column}
+\item{Modified model function with shared parameter support}
+\item{Starting parameter values for the shared parameter model}
 }
 }
 \description{

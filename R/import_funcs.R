@@ -53,7 +53,7 @@
 #' }
 import_trackmate_spot_data <- function(
   path,
-  spot_suffix = "-spots.csv",
+  spot_suffix = "_merged_spots.csv",
   time_suffix = "_datetime.csv"
 ) {
   message(paste0("Processing:\n", path))
@@ -61,7 +61,7 @@ import_trackmate_spot_data <- function(
   time_paths <- list.files(path, time_suffix, full.names = TRUE)
 
   if (length(spot_paths) != length(time_paths)) {
-    message("No. of spot files does not equal no. of time files")
+    message("Number of spot files does not equal number of time files")
     message("Is this an error in segmentation?")
   }
 
@@ -79,12 +79,11 @@ import_trackmate_spot_data <- function(
   # Read in both sets of matched data
   spot_list <- purrr::map(spot_paths, function(x) {
     # An example of the file name:
-    # VID207_B10_1-spots.csv"
+    # VID207_B10_1_merged_spots.csv"
     well <- stringr::str_extract(x, "(?:VID\\d+_)([A-Z]\\d{1,2})(?:_)", 1)
 
-    df <- readr::read_csv(x, show_col_types = FALSE, skip = 1)
-    # Remove the first and second line
-    df <- dplyr::slice(df, -c(1:2))
+    df <- readr::read_csv(x, show_col_types = FALSE)
+    
     # Convert to integer/numeric where able
     df <- convert_character_columns(df)
     # Add in well column
@@ -113,7 +112,7 @@ import_trackmate_spot_data <- function(
       show_col_types = FALSE,
       col_names = c("index", "datetime")
     ) |>
-      dplyr::rename("T" = index)
+      dplyr::rename("frame" = index)
   })
   # Names of list == wells
   names(datetime_list) <- stringr::str_split(basename(time_paths), "_") |>
@@ -124,9 +123,9 @@ import_trackmate_spot_data <- function(
 
   # Add in datetime to spot data
   spot_list <- purrr::map2(spot_list, datetime_list, function(x, y) {
-    df <- dplyr::left_join(x, y, by = "T")
+    df <- dplyr::left_join(x, y, by = "frame")
     # Remove zero-based index
-    df <- dplyr::mutate(df, !!rlang::sym("T") := !!rlang::sym("T") + 1)
+    df <- dplyr::mutate(df, !!rlang::sym("frame") := !!rlang::sym("frame") + 1)
     df <- dplyr::relocate(df, datetime)
 
     df

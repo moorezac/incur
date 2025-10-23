@@ -195,9 +195,9 @@ make_shared_body <- function(func, group_vec, share_params) {
 #'
 #' @return A list containing:
 #' \describe{
-#'   \item{[[1]]}{Modified data frame with standardized group column}
-#'   \item{[[2]]}{Modified model function with shared parameter support}
-#'   \item{[[3]]}{Starting parameter values for the shared parameter model}
+#'   \item{Modified data frame with standardized group column}
+#'   \item{Modified model function with shared parameter support}
+#'   \item{Starting parameter values for the shared parameter model}
 #' }
 #'
 #' @details

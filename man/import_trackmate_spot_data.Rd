@@ -6,7 +6,7 @@
 \usage{
 import_trackmate_spot_data(
   path,
-  spot_suffix = "-spots.csv",
+  spot_suffix = "_merged_spots.csv",
   time_suffix = "_datetime.csv"
 )
 }
