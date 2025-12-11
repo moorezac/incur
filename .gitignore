@@ -5,4 +5,5 @@
 incur.Rproj
 
 /.quarto/
+/software
 data/.DS_Store

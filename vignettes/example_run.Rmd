@@ -9,6 +9,7 @@ vignette: >
 editor_options: 
   markdown: 
     wrap: 80
+  chunk_output_type: console
 ---
 
 ```{r include=FALSE}
@@ -21,15 +22,13 @@ knitr::opts_chunk$set(
 
 # Objective
 
-The `incur` package provides tools for analyzing cell growth curves and dose-response relationships. This vignette demonstrates 
-the main functionality using example datasets included with the package.
+The `incur` package provides tools for analyzing cell growth curves and dose-response relationships. This vignette demonstrates the main functionality using example datasets included with the package.
 
 # Loading and Visualizing Data
 
 First, load the required packages.
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
-library(tidyverse)
 library(incur)
 ```
 
@@ -38,12 +37,14 @@ The package includes sample datasets to help you get started. The `double_data` 
 The plot shows the expected exponential growth curves for both seeding densities, with the higher seeding density (2000 cells) reaching greater final areas than the lower density (1000 cells).
 
 ```{r}
-data("double_data")
+data("double_data", package = "incur")
+double_data_filt <- double_data |> 
+  dplyr::select(cells_seeded, hours_from, area)
 
-ggplot() +
-  geom_point(
-    double_data,
-    mapping = aes(hours_from, area, colour = as.factor(cells_seeded))
+ggplot2::ggplot() +
+  ggplot2::geom_point(
+    double_data_filt,
+    mapping = ggplot2::aes(hours_from, area, colour = as.character(cells_seeded))
   )
 ```
 
@@ -52,18 +53,19 @@ ggplot() +
 The `incur` package provides several models to fit growth curves. Here we are usign `five_param_sigmoid`. These models can share parameters between different experimental groups to improve fitting stability. The `share_group` parameter specifies which column contains the grouping variable (seeding density), while `share_params` indicates which model parameters should be shared between groups. Here we share the "top" (maximum growth) and "slope" parameters.
 
 ```{r}
-double_model <- incur::fit_model(
-  data = double_data,
+double_model <- fit_curve(
+  data = double_data_filt,
   x_var = "hours_from",
   y_var = "area",
-  model = "five_param_sigmoid",
-  share_group = "cells_seeded",
-  share_params = c("top", "slope")
+  curve_opts = list(model = "five_param_sigmoid"),
+  shared_opts = list(share_group = "cells_seeded", share_params = c("top", "slope"))
 )
+double_model$fit
+```
 
-incur::plot_model(
-  data = double_model$data,
-  fit = double_model$fit,
+```{r}
+plot_model(
+  list = double_model,
   x_var = "hours_from",
   y_var = "area"
 )
@@ -73,19 +75,82 @@ incur::plot_model(
 Real experimental data often contains outliers that can affect model fitting. The `incur` package includes robust outlier detection by setting `rout = TRUE`. The outlier detection algorithm identifies and removes data points that don't fit the expected growth pattern, resulting in cleaner model fits. The plot shows the fitted curves with outliers highlighted. Notice how the outlier-robust fitting produces smoother curves and better captures the underlying growth dynamics.
 
 ```{r}
-double_model_outliers <- incur::fit_model(
-  data = double_data,
+double_model_outlier <- fit_curve(
+  data = double_data_filt,
   x_var = "hours_from",
   y_var = "area",
-  model = "five_param_sigmoid",
-  share_group = "cells_seeded",
-  share_params = c("top", "slope"),
-  rout = TRUE
+  curve_opts = list(model = "four_param_sigmoid"),
+  shared_opts = list(share_group = "cells_seeded", share_params = c("top", "slope")),
+  outlier_opts = list(huber = TRUE, rout = TRUE)
+  # model = "five_param_sigmoid",
+  # share_group = "cells_seeded",
+  # share_params = c("top", "slope")
 )
 
+
+plot_model(
+  list = double_model_outlier,
+  x_var = "hours_from",
+  y_var = "area"
+)
+```
+
+# Concentration
+
+```{r}
+conc_model <- interpolate_curve_concentration(
+  data = conc_data |> 
+  #   mutate(exclude = case_when(
+  #   concentration %in% c(-4, -4.5) ~ TRUE,
+  #   .default = FALSE
+  # )),
+    filter(!concentration %in% c(-4, -4.5)) |> 
+    mutate(treatment_name = case_when(
+      treatment_name == "vehicle" ~ "Vehicle",
+      .default = treatment_name
+    )),
+  x_var = "hours_from",
+  y_var = "area",
+  treatment_column = "treatment_name",
+  negative_control_name = "Vehicle",
+  concentration_column = "concentration",
+  models = "four_param_sigmoid",
+  outlier_opts = list(huber = TRUE, rout = TRUE)
+)
+conc_model$plot
+
+plot_curve_concentration(
+  model_list = conc_model$model_list,
+   x_var = "hours_from",
+  y_var = "area",
+  treatment_column = "treatment_name",
+  negative_control_name = "Vehicle",
+  concentration_column = "concentration"
+) + 
+  theme(legend.title = element_blank()) + 
+  labs(x = "Time", y = "Area") + 
+  ggh4x::force_panelsizes(unit(3.5, "cm"), unit(3.5, "cm"))
+
+plot_curve_concentration_metric_dose(
+  model_list = conc_model$model_list,
+   x_var = "hours_from",
+  metric = "gr",
+  treatment_column = "treatment_name",
+  negative_control_name = "Vehicle",
+  concentration_column = "concentration"
+) + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1), axis.title.x = element_blank()) + 
+  labs(y = "GR") +
+  guides(colour = guide_colorbar("Time")) + 
+  ggh4x::force_panelsizes(unit(3.5, "cm"), unit(3.5, "cm"))
+gg_gr <- .Last.value
+
+gg_gr$layers[[4]]$aes_params$size = 8/.pt
+gg_gr
+
 incur::plot_model(
-  data = double_model_outliers$data,
-  fit = double_model_outliers$fit,
+  data = double_model_outlier$data,
+  fit = double_model_outlier$fit,
   x_var = "hours_from",
   y_var = "area"
 )
@@ -96,16 +161,16 @@ One of the key metrics for cell growth analysis is the doubling time. The `incur
 
 ```{r}
 double_model_predicted <- bind_rows(
-  incur::predict_data(
-    fit = double_model_outliers$fit,
-    lower_x = min(double_data$hours_from),
-    upper_x = max(double_data$hours_from),
+  predict_data(
+    fit = double_model$fit,
+    lower_x = min(double_model$data$hours_from),
+    upper_x = max(double_model$data$hours_from),
     group = 1000
   ),
-  incur::predict_data(
-    fit = double_model_outliers$fit,
-    lower_x = min(double_data$hours_from),
-    upper_x = max(double_data$hours_from),
+  predict_data(
+fit = double_model$fit,
+    lower_x = min(double_model$data$hours_from),
+    upper_x = max(double_model$data$hours_from),
     group = 2000
   )
 )
@@ -122,6 +187,19 @@ incur::calc_double_rate_data(
   cell_column = "cells_seeded",
   dimension_factor = 2^(1 / 3)
 )
+.Last.value$plot[[2]] + 
+  labs(x = "Time", y = "log(Area)") + 
+  guides(colour = guide_legend("Cells")) + 
+  ggh4x::force_panelsizes(unit(3.5, "cm"), unit(3.5, "cm"))
+
+# Without fitting a curve
+incur::calc_double_rate_data(
+  data = double_data |> filter(!well %in% "H12"),
+  x_var = "hours_from",
+  y_var = "area",
+  cell_column = "cells_seeded",
+  dimension_factor = 2^(1 / 3)
+)
 ```
 
 # Dose-Response Analysis
@@ -129,10 +207,10 @@ incur::calc_double_rate_data(
 The `incur` package also supports dose-response analysis. Let's load the concentration-response dataset. This dataset contains spheroid area measurements at different drug concentrations. Let's visualize the data:
 
 ```{r}
-data("conc_data")
+data("conc_data", package = "incur")
 
-ggplot() +
-  geom_point(
+ggplot2::ggplot() +
+  ggplot2::geom_point(
     conc_data,
     mapping = aes(hours_from, area, colour = as.factor(concentration))
   )
@@ -141,9 +219,9 @@ ggplot() +
 For dose-response analysis, you may want to exclude certain concentrations from the analysis. Here we exclude the highest concentrations (-4 and -4.5 log M) which represent complete killing of the spheres. The area measurements here are a result of poor segmentation.
 
 ```{r}
-conc_data <- mutate(
+conc_data <- dplyr::mutate(
   conc_data,
-  exclude = case_when(
+  exclude = dplyr::case_when(
     concentration %in% c(-4, -4.5) ~ TRUE,
     .default = FALSE
   )
@@ -152,45 +230,66 @@ conc_data <- mutate(
 
 # Fitting Dose-Response Models
 
-The package provides specialized functions for concentration-response analysis. The `fit_model_conc` function applies the same model to a dataframe with a `concentration` column. The package offers several visualization options for dose-response data as well:
+The package provides specialized functions for concentration-response analysis. The `interpolate_curve_concentratiom` function applies the same model to a dataframe with a `concentration` column. The package offers several visualization options for dose-response data as well:
 
 ```{r}
-model_list <- incur::fit_model_conc(
+model <- interpolate_curve_concentration(
   data = conc_data,
   x_var = "hours_from",
   y_var = "area",
-  model = "five_param_sigmoid",
-  rout = TRUE
+  treatment_column = "treatment_name",
+  concentration_column = "concentration",
+  negative_control_name = "vehicle",
+  outlier_opts = list(huber = TRUE, rout = TRUE)
 )
+model$plot
+```
 
-incur::plot_model_conc(
-  model_list = model_list,
+```{r}
+plot_curve_concentration(
+  model_list = model$model_list,
   x_var = "hours_from",
   y_var = "area",
-  start_colour = "#0085ca"
+  treatment_column = "treatment_name",
+  concentration_column = "concentration",
+  negative_control_name = "vehicle"
 )
 ```
 
 This plot shows how growth rates vary with time and concentration. The growth rate analysis reveals how different concentrations affect the rate of cell growth throughout the experiment.
 
 ```{r}
-incur:::plot_model_conc_gr_time(
-  model_list = model_list,
+plot_curve_concentration_metric_time(
+  model_list = model$model_list,
   x_var = "hours_from",
-  y_var = "area",
-  start_colour = "#0085ca"
+  metric = "gr",
+  treatment_column = "treatment_name",
+  concentration_column = "concentration",
+  negative_control_name = "vehicle"
 )
 ```
 
 Finally, we can visualize the classic dose-response relationship. This plot shows the relationship between drug concentration and growth inhibition, with the characteristic sigmoid curve that's fundamental to pharmacological analysis.
 
 ```{r}
-incur::plot_model_conc_gr_dose(
-  model_list = model_list,
+plot_curve_concentration_metric_dose(
+  model_list = model$model_list,
   x_var = "hours_from",
-  y_var = "area",
-  model = "five_param_sigmoid_log",
-  start_colour = "#0085ca"
+  metric = "gr",
+  treatment_column = "treatment_name",
+  concentration_column = "concentration",
+  negative_control_name = "vehicle"
+)
+```
+
+```{r}
+plot_lgr_score(
+  model_list = model$model_list,
+  x_var = "hours_from",
+  metric = "gr",
+  treatment_column = "treatment_name",
+  concentration_column = "concentration",
+  negative_control_name = "vehicle"
 )
 ```
 
