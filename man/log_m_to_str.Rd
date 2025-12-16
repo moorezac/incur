@@ -21,6 +21,6 @@ unit prefixes (M, mM, µM, nM, pM, fM) for display in plots and tables.
 \examples{
 # Convert log concentrations to readable format
 log_concs <- c(-9, -6, -3, 0)
-formatted <- log_molar_to_string(log_concs)
+formatted <- log_m_to_str(log_concs)
 # Returns: c("1.00 nM", "1.00 µM", "1.00 mM", "1.00 M")
 }

@@ -19,7 +19,7 @@ predict_data(obj, lower_x, upper_x, group = NA, num_points = 1000)
 }
 \value{
 A tibble containing:
-\describe{
+\itemize{
 \item{x}{Prediction x values}
 \item{y}{Predicted y values}
 \item{group}{Group identifier (if applicable)}

@@ -1,12 +1,13 @@
 #' Calculate Area Under Curve for Fitted Model via Integration
+#'
 #' @description
 #' Calculate the area under the curve (AUC) for a fitted model between specified bounds.
 #' @param lower_x The lower bound for integration.
 #' @param upper_x The upper bound for integration.
 #' @param obj A fitted `nls` object from `fit_curve()` or similar.
-#' @return 
+#' @return
 #' A list of class `integrate` containing:
-#'  \begin{
+#'  \itemize{
 #'    \item{value}{The calculated area under the curve}
 #'    \item{abs.error}{Estimate of absolute error}
 #'    \item{subdivisions}{Number of subdivisions used}
@@ -43,9 +44,9 @@ calculate_auc <- function(obj, lower_x, upper_x) {
 #' @param group Optional character vector of group values for shared parameter models.
 #' @param num_points Number of prediction points between lower_x and upper_x (default: 1000).
 #' @param obj A fitted `nls` object from `fit_curve()` or similar.
-#' @return 
+#' @return
 #' A tibble containing:
-#'  \describe{
+#'  \itemize{
 #'    \item{x}{Prediction x values}
 #'    \item{y}{Predicted y values}
 #'    \item{group}{Group identifier (if applicable)}
@@ -69,14 +70,14 @@ calculate_auc <- function(obj, lower_x, upper_x) {
 #' }
 #' @export
 predict_data <- function(
-    obj,
-    lower_x,
-    upper_x,
-    group = NA,
-    num_points = 1e3
+  obj,
+  lower_x,
+  upper_x,
+  group = NA,
+  num_points = 1e3
 ) {
   x_values <- seq(lower_x, upper_x, length.out = num_points)
-  
+
   if (!any(is.na(group))) {
     # For each group, predict and store results
     res_list <- lapply(group, function(i) {
@@ -98,9 +99,9 @@ predict_data <- function(
 #' @param x_values Numeric vector of x values defining the search interval.
 #' @param target Numeric value specifying the target y value.
 #' @param obj A fitted `nls` object from `fit_curve()` or similar.
-#' @return 
-#' A list as returned by \code{\link[stats]{uniroot}}, containing: 
-#'  \itemze{
+#' @return
+#' A list as returned by \code{\link[stats]{uniroot}}, containing:
+#'  \itemize{
 #'    \item `root` T:he x value where predicted y equals target.
 #'    \item `f.root` :The value of the function at the root (should be near 0).
 #'    \item `iter` :Number of iterations.
@@ -111,7 +112,7 @@ predict_data <- function(
 #' \dontrun{
 #' # Find IC50 (concentration at which response = 0.5)
 #' ic50 <- find_x_for_y(
-#'   fit = dose_response_fit,
+#'   obj = dose_response_fit,
 #'   x_values = predicted$x,
 #'   target = 0.5
 #' )
@@ -130,7 +131,7 @@ find_x_for_y <- function(obj, x_values, target) {
 #' Calculate Area Under Curve Using Trapezoidal Rule
 #' @param x Numeric vector of x values (must be sorted).
 #' @param y Numeric vector of y values.
-#' @return 
+#' @return
 #' Numeric scalar representing the area.
 #' @keywords internal
 auc_trapezoid <- function(x, y) {

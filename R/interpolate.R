@@ -18,7 +18,7 @@
 #'     \item `rout_q`: False discovery rate for ROUT (default: 1e-3).
 #'     \item `rout_scale`: Scale estimator for ROUT, either "mad" or "quantile" (default: "mad").
 #'   }
-#' @return 
+#' @return
 #' A list containing:
 #'  \itemize{
 #'    \item `selected`: The best-fitting model object.
@@ -29,11 +29,12 @@
 #'  Returns NA if no models fit successfully.
 #' @keywords internal
 select_best_model <- function(
-    data,
-    x_var,
-    y_var,
-    models,
-    outlier_opts = NA) {
+  data,
+  x_var,
+  y_var,
+  models,
+  outlier_opts = NA
+) {
   successful_fits <- list()
 
   for (model in models) {
@@ -89,7 +90,7 @@ select_best_model <- function(
 #' @param data A data frame containing time-course measurements.
 #' @param loess Logical; if TRUE, fits LOESS curves instead of parametric models.
 #'   Default is FALSE.
-#' @param loses_span Span to use for LOESS.
+#' @param loess_span Span to use for LOESS.
 #' @param x_var Character string specifying the column name for the independent
 #'   variable (typically time).
 #' @param y_var Character string specifying the column name for the dependent
@@ -103,7 +104,6 @@ select_best_model <- function(
 #' @param positive_control_name Character string identifying the positive
 #'   control (e.g., a cytotoxic agent) in \code{treatment_column}. If provided,
 #'   NDR values are calculated. Default is NULL.
-#' @param loess_span TODO: description.
 #' @param outlier_opts A named list of shared parameter options. Elements include:
 #'  \itemize{
 #'     \item `huber`: Logical; use Huber robust regression? (default: FALSE).
@@ -115,17 +115,16 @@ select_best_model <- function(
 #'     \item `rout_scale`: Scale estimator for ROUT, either "mad" or "quantile" (default: "mad").
 #'   }
 #' @param models Character vector of model names from `incur_models`.
-#' @return 
+#' @return
 #' A list containing:
 #'  \itemize{
-#'    \item`model_list`: A named list (one element per treatment-concentration
+#'    \item `model_list`: A named list (one element per treatment-concentration
 #'      combination) where each element contains:
-#'      \itemize
+#'      \itemize{
 #'        \item `selected`: The best-fitting model object (or NA if excluded).
 #'        \item `data`: The subset of data for that combination.
 #'      }
-#'    }
-#'    \item1: A \code{ggplot2} object showing all fitted models for each
+#'    \item: A \code{ggplot2} object showing all fitted models for each
 #'      concentration, with the selected model highlighted.
 #'  }
 #' @note Only a single treatment compound (plus controls) should be present in
@@ -135,20 +134,20 @@ select_best_model <- function(
 #'   \code{\link{predict_data}}
 #' @importFrom ggplot2 ggplot aes geom_point geom_line guides guide_legend labs
 #'   theme element_text facet_wrap
-#' @importFrom checkmate test_numeric
 #' @export
 interpolate_curve_concentration <- function(
-    data,
-    x_var,
-    y_var,
-    treatment_column,
-    concentration_column,
-    negative_control_name,
-    positive_control_name = NA,
-    loess = FALSE,
-    loess_span = 0.3,
-    outlier_opts = NA,
-    models = names(incur_models)) {
+  data,
+  x_var,
+  y_var,
+  treatment_column,
+  concentration_column,
+  negative_control_name,
+  positive_control_name = NA,
+  loess = FALSE,
+  loess_span = 0.3,
+  outlier_opts = NA,
+  models = names(incur_models)
+) {
   data <- prep_data(data, x_var, y_var)
 
   data <- assign_condition(
@@ -178,11 +177,17 @@ interpolate_curve_concentration <- function(
     combinations$treatment,
     SIMPLIFY = FALSE,
     FUN = function(conc, treat) {
-      data_filtered <- data[data[[concentration_column]] == conc &
-        data[[treatment_column]] == treat, ]
+      data_filtered <- data[
+        data[[concentration_column]] == conc &
+          data[[treatment_column]] == treat,
+      ]
 
       # Check if this concentration should be excluded
-      if ("exclude" %in% names(data_filtered) && any(data_filtered$exclude == TRUE)) {
+      if (
+        "exclude" %in%
+          names(data_filtered) &&
+          any(data_filtered$exclude == TRUE)
+      ) {
         return(list(
           selected = NA,
           data = data_filtered,
@@ -210,7 +215,8 @@ interpolate_curve_concentration <- function(
         if (!length(model_selection$all_fits)) {
           stop(sprintf(
             "No models converged for %s at concentration %s",
-            treat, conc
+            treat,
+            conc
           ))
         }
       }
@@ -218,7 +224,6 @@ interpolate_curve_concentration <- function(
       obj_list <- lapply(model_selection$all_fits, function(x) {
         x$fit$obj
       })
-      
 
       # Generate predictions
       predictions <- mapply(
@@ -261,7 +266,7 @@ interpolate_curve_concentration <- function(
   prediction_data <- do.call(rbind, prediction_list)
   rownames(prediction_data) <- NULL
   prediction_data <- prediction_data[!is.na(prediction_data$x), ]
-  
+
   # This is easier for facet_wrap
   gg_data <- data
   gg_data$facet <- paste(

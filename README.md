@@ -16,8 +16,6 @@ The principle goal of incur is to provide a user-friendly pipeline to export, se
 
 However, the automated curve fitting functions are able to be used on any dataset, and includes option for shared parameters across groups, outlier detection, and upper/lower limits on parameters.
 
-It also includes a pipeline for cell line authenticiation/validation via interrogation of SNP microarray data.
-
 ## Learn
 
 See the vignettes.

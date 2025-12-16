@@ -15,7 +15,7 @@ calculate_auc(obj, lower_x, upper_x)
 }
 \value{
 A list of class \code{integrate} containing:
-\begin{
+\itemize{
 \item{value}{The calculated area under the curve}
 \item{abs.error}{Estimate of absolute error}
 \item{subdivisions}{Number of subdivisions used}

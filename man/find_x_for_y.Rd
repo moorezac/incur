@@ -17,7 +17,7 @@ find_x_for_y(obj, x_values, target)
 }
 \value{
 A list as returned by \code{\link[stats]{uniroot}}, containing:
-\itemze{
+\itemize{
 \item \code{root} T:he x value where predicted y equals target.
 \item \code{f.root} :The value of the function at the root (should be near 0).
 \item \code{iter} :Number of iterations.
@@ -33,7 +33,7 @@ predicts a specified target y value.
 \dontrun{
 # Find IC50 (concentration at which response = 0.5)
 ic50 <- find_x_for_y(
-  fit = dose_response_fit,
+  obj = dose_response_fit,
   x_values = predicted$x,
   target = 0.5
 )

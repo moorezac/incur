@@ -43,7 +43,7 @@ NDR values are calculated. Default is NULL.}
 \item{loess}{Logical; if TRUE, fits LOESS curves instead of parametric models.
 Default is FALSE.}
 
-\item{loess_span}{TODO: description.}
+\item{loess_span}{Span to use for LOESS.}
 
 \item{outlier_opts}{A named list of shared parameter options. Elements include:
 \itemize{
@@ -57,20 +57,17 @@ Default is FALSE.}
 }}
 
 \item{models}{Character vector of model names from \code{incur_models}.}
-
-\item{loses_span}{Span to use for LOESS.}
 }
 \value{
 A list containing:
 \itemize{
-\item\code{model_list}: A named list (one element per treatment-concentration
+\item \code{model_list}: A named list (one element per treatment-concentration
 combination) where each element contains:
-\itemize
+\itemize{
 \item \code{selected}: The best-fitting model object (or NA if excluded).
 \item \code{data}: The subset of data for that combination.
 }
-}
-\item1: A \code{ggplot2} object showing all fitted models for each
+\item: A \code{ggplot2} object showing all fitted models for each
 concentration, with the selected model highlighted.
 }
 }

@@ -2,10 +2,7 @@
 % Please edit documentation in R/import.R
 \name{summarise_trackmate}
 \alias{summarise_trackmate}
-\title{Summarise TrackMate Spot Data by Timepoint
-Aggregates spot-level TrackMate data to per-timepoint summaries, applying
-user-specified functions to numeric columns and preserving non-numeric
-columns.}
+\title{Summarise TrackMate Spot Data by Timepoint}
 \usage{
 summarise_trackmate(
   spot_list,
@@ -33,23 +30,21 @@ Default is \code{c("id", "label", "track_id", "track_name")}.}
 \value{
 A named list of data frames (same structure as input), where each
 data frame contains one row per unique timepoint with:
-\describe{
-\item{\verb{<datetime_column>}: The grouping timepoint.
-\item{\code{num_spots}: Count of spots at that timepoint.
-\item{\verb{<fun>_<col>}: Summary statistics for each numeric column, named as
-\code{`function_column`: (e.g., \code{mean_area}).
-    \item `...`: Non-numeric columns preserved as first unique value per group.
-  }
+\itemize{
+\item \code{<datetime_column>}: The grouping timepoint.
+\item \code{num_spots}: Count of spots at that timepoint.
+\item \code{<fun>_<col>}: Summary statistics for each numeric column, named as
+\code{function_column}: (e.g., \code{mean_area}).
+\item \code{...}: Non-numeric columns preserved as first unique value per group.
+}
 }
 \description{
-Summarise TrackMate Spot Data by Timepoint
 Aggregates spot-level TrackMate data to per-timepoint summaries, applying
 user-specified functions to numeric columns and preserving non-numeric
 columns.
 }
 \examples{
 \dontrun{
-# Basic usage with default mean
 summary_data <- summarise_trackmate(spot_list)
 # Multiple summary functions
 summary_data <- summarise_trackmate(

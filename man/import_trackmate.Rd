@@ -45,14 +45,10 @@ information from companion files. Returns a list of data frames organised
 by well.
 }
 \note{
-\itemize
+\itemize{
 \item Empty spot files (no data rows) are silently excluded from the output.
 \item Frame numbers are converted from 0-indexed (TrackMate) to 1-indexed.
 \item Files are matched between spot and datetime directories by their
 basename prefix (before the suffix).
-}
-}
-\examples{
-\dontrun{
 }
 }

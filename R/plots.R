@@ -41,7 +41,7 @@ find_identical_to_column <- function(data, target, coerce_to_char = TRUE) {
 #'   variable (typically time).
 #' @param y_var Character string specifying the column name for the dependent
 #'   variable (e.g., cell count, confluence, or a calculated metric).
-#' @return 
+#' @return
 #' A ggplot object (default) or a list containing original and predicted
 #'   data for external plotting (if return_data = TRUE).
 #' @importFrom ggplot2 geom_line geom_point ggplot labs aes guides guide_legend
@@ -68,18 +68,23 @@ find_identical_to_column <- function(data, target, coerce_to_char = TRUE) {
 plot_model <- function(list, x_var, y_var, return_data = FALSE) {
   data <- list[["data"]]
   fit <- list[["fit"]]
-  
+
   if (!all(c("x", "y", "x_original", "y_original") %in% colnames(data))) {
     data <- prep_data(data, x_var, y_var)
   }
-  
+
   # Check for grouping
   formula_vars <- all.vars(formula(fit$obj))
   if ("group" %in% formula_vars) {
     group_vec <- unique(data$group)
-    predicted <- predict_data(fit$obj, min(data$x), max(data$x), group = group_vec)
+    predicted <- predict_data(
+      fit$obj,
+      min(data$x),
+      max(data$x),
+      group = group_vec
+    )
     use_colour <- TRUE
-    
+
     original_group <- find_identical_to_column(
       data = data,
       target = "group",
@@ -89,16 +94,16 @@ plot_model <- function(list, x_var, y_var, return_data = FALSE) {
     predicted <- predict_data(fit$obj, min(data$x), max(data$x))
     use_colour <- FALSE
   }
-  
+
   # Check for outliers
   outlier_column <- paste("outlier", y_var, sep = "_")
-  
+
   if (outlier_column %in% colnames(data)) {
     use_shape <- TRUE
   } else {
     use_shape <- FALSE
   }
-  
+
   # Aesthetics
   map_point <- map_line <- ggplot2::aes(x = x, y = y)
   if (use_colour) {
@@ -108,12 +113,12 @@ plot_model <- function(list, x_var, y_var, return_data = FALSE) {
   if (use_shape) {
     map_point$shape <- as.name(outlier_column)
   }
-  
+
   # If wanted to plot elsewhere
   if (return_data) {
     return(list(data = data, predicted = predicted))
   }
-  
+
   # Plot
   gg <- ggplot2::ggplot() +
     ggplot2::geom_point(data = data, mapping = map_point, alpha = 0.25) +
@@ -130,7 +135,7 @@ plot_model <- function(list, x_var, y_var, return_data = FALSE) {
       }
     } +
     theme_incur()
-  
+
   return(gg)
 }
 
@@ -144,14 +149,14 @@ plot_model <- function(list, x_var, y_var, return_data = FALSE) {
 #' @param positive_control_name Character string identifying the positive
 #'   control (e.g., a cytotoxic agent) in \code{treatment_column}. If provided,
 #'   NDR values are calculated. Default is NULL.
-#' @return 
+#' @return
 #' The input data frame with a new \code{condition} column.
 #' @keywords internal
 assign_condition <- function(
-    data,
-    treatment_column,
-    negative_control_name,
-    positive_control_name = NA
+  data,
+  treatment_column,
+  negative_control_name,
+  positive_control_name = NA
 ) {
   if (is.na(positive_control_name)) {
     data$condition <- ifelse(
@@ -183,25 +188,25 @@ assign_condition <- function(
 #'   concentrations are displayed as progressively lighter tints. Default is
 #'   \code{"#0085ca"}.
 #' @param exclude_concs Numeric vector of concentrations to mark as excluded.
-#' @return 
+#' @return
 #' A named character vector of colours.
 #' @importFrom tinter tinter
 #' @keywords internal
 make_concentration_palette <- function(
-    unique_concs,
-    positive_control_name = NA,
-    start_colour = "#0085ca",
-    exclude_concs = NA
+  unique_concs,
+  positive_control_name = NA,
+  start_colour = "#0085ca",
+  exclude_concs = NA
 ) {
   total_concs <- length(unique_concs)
-  
+
   # Generate tints
   if (total_concs > 1) {
     steps <- floor(total_concs / 2) + 1
   } else {
     steps <- 2
   }
-  
+
   tints <- tinter::tinter(
     x = start_colour,
     steps = steps,
@@ -209,19 +214,19 @@ make_concentration_palette <- function(
   )
   tints <- rev(tints[seq_len(total_concs)])
   names(tints) <- paste(unique_concs, "treatment", sep = "_")
-  
+
   # Mark excluded concentrations
   if (!any(is.na(exclude_concs))) {
     exclude_names <- paste(exclude_concs, "treatment", sep = "_")
     tints[names(tints) %in% exclude_names] <- "#ff0000"
   }
-  
+
   # Add controls
   tints <- c("negative_control" = "#000000", tints)
   if (!is.na(positive_control_name)) {
     tints <- c(tints, "positive_control" = "#ff0000")
   }
-  
+
   return(tints)
 }
 
@@ -237,18 +242,18 @@ make_concentration_palette <- function(
 #' @param positive_control_name Character string identifying the positive
 #'   control (e.g., a cytotoxic agent) in \code{treatment_column}. If provided,
 #'   NDR values are calculated. Default is NULL.
-#' @return 
+#' @return
 #' Character vector of formatted labels.
 #' @keywords internal
 make_concentration_labels <- function(
-    unique_concs,
-    negative_control_name,
-    negative_control_conc = NA,
-    positive_control_name = NA,
-    positive_control_conc = NA
+  unique_concs,
+  negative_control_name,
+  negative_control_conc = NA,
+  positive_control_name = NA,
+  positive_control_conc = NA
 ) {
   labels <- log_m_to_str(sort(unique_concs))
-  
+
   # Add negative control label at front
   if (is.na(negative_control_conc) || negative_control_conc == 0) {
     neg_label <- negative_control_name
@@ -259,7 +264,7 @@ make_concentration_labels <- function(
     )
   }
   labels <- c(neg_label, labels)
-  
+
   # Add positive control label at end
   if (!is.na(positive_control_name)) {
     if (is.na(positive_control_conc) || positive_control_conc == 0) {
@@ -272,7 +277,7 @@ make_concentration_labels <- function(
     }
     labels <- c(labels, pos_label)
   }
-  
+
   return(labels)
 }
 
@@ -311,23 +316,23 @@ assign_colour_vec <- function(data, concentration_column) {
 #'   }
 #' @keywords internal
 extract_concentration_info <- function(
-    data,
-    concentration_column,
-    positive_control_name = NA
+  data,
+  concentration_column,
+  positive_control_name = NA
 ) {
   unique_concs <- sort(unique(
     data[[concentration_column]][data$condition == "treatment"]
   ))
-  
+
   negative_control_conc <- unique(
     data[[concentration_column]][data$condition == "negative_control"]
   )
   if (!length(negative_control_conc)) {
     negative_control_conc <- NA
   }
-  
+
   if (!is.na(positive_control_name)) {
-    positive_control_conc <- 
+    positive_control_conc <-
       unique(data[[concentration_column]][data$condition == "positive_control"])
     if (!length(positive_control_conc)) {
       positive_control_conc <- NA
@@ -335,12 +340,12 @@ extract_concentration_info <- function(
   } else {
     positive_control_conc <- NA
   }
-  
+
   exclude_concs <- NA
   if ("exclude" %in% colnames(data)) {
     exclude_concs <- unique(data[[concentration_column]][data$exclude])
   }
-  
+
   return(list(
     unique_concs = unique_concs,
     negative_control_conc = negative_control_conc,
@@ -392,14 +397,14 @@ extract_concentration_info <- function(
 #'   scale_fill_manual labs guides guide_legend
 #' @export
 plot_curve_concentration <- function(
-    model_list,
-    x_var,
-    y_var,
-    treatment_column,
-    concentration_column,
-    negative_control_name,
-    positive_control_name = NA,
-    start_colour = "#0085ca"
+  model_list,
+  x_var,
+  y_var,
+  treatment_column,
+  concentration_column,
+  negative_control_name,
+  positive_control_name = NA,
+  start_colour = "#0085ca"
 ) {
   obj_list <- lapply(model_list, function(x) {
     x$fit$obj
@@ -407,10 +412,10 @@ plot_curve_concentration <- function(
   data_list <- lapply(model_list, function(x) {
     x$data
   })
-  
+
   data <- do.call(rbind, data_list)
   rownames(data) <- NULL
-  
+
   # Generate predictions
   prediction_list <- mapply(
     obj_list,
@@ -419,7 +424,7 @@ plot_curve_concentration <- function(
       if (all(is.na(obj))) {
         return(NA)
       }
-      
+
       pred <- predict_data(
         obj = obj,
         lower_x = min(data$x),
@@ -427,14 +432,14 @@ plot_curve_concentration <- function(
       )
       pred[[concentration_column]] <- unique(data[[concentration_column]])
       pred[[treatment_column]] <- unique(data[[treatment_column]])
-      
+
       return(pred)
     },
     SIMPLIFY = FALSE
   )
   predicted <- do.call(rbind, prediction_list)
   rownames(predicted) <- NULL
-  
+
   # Assign conditions
   data <- assign_condition(
     data,
@@ -448,7 +453,7 @@ plot_curve_concentration <- function(
     negative_control_name,
     positive_control_name
   )
-  
+
   concentration_info <- extract_concentration_info(
     data,
     concentration_column,
@@ -469,16 +474,16 @@ plot_curve_concentration <- function(
     positive_control_name = positive_control_name,
     positive_control_conc = concentration_info$positive_control_conc
   )
-  
+
   # Create colour vectors
   data <- assign_colour_vec(data, concentration_column)
   predicted <- assign_colour_vec(predicted, concentration_column)
-  
+
   # Remove excluded data points
   if ("exclude" %in% colnames(data)) {
     data <- data[!data$exclude, ]
   }
-  
+
   gg <- ggplot2::ggplot() +
     ggplot2::geom_point(
       data,
@@ -510,9 +515,9 @@ plot_curve_concentration <- function(
       drop = FALSE,
       guide = ggplot2::guide_legend(concentration_column)
     ) +
-    ggplot2::labs(x = x_var, y = y_var) + 
+    ggplot2::labs(x = x_var, y = y_var) +
     theme_incur()
-  
+
   return(gg)
 }
 
@@ -541,7 +546,7 @@ plot_curve_concentration <- function(
 #' @description
 #' Visualises GR or NDR values over time for each concentration, showing the
 #' temporal dynamics of drug response.
-#' @return 
+#' @return
 #' A list containing:
 #'  \itemize{
 #'    \item `data`: The processed data frame with calculated metrics.
@@ -554,14 +559,14 @@ plot_curve_concentration <- function(
 #'   scale_fill_manual ylim labs guides guide_legend
 #' @export
 plot_curve_concentration_metric_time <- function(
-    model_list,
-    x_var,
-    metric = "gr",
-    concentration_column,
-    treatment_column,
-    negative_control_name,
-    positive_control_name = NA,
-    start_colour = "#0085ca"
+  model_list,
+  x_var,
+  metric = "gr",
+  concentration_column,
+  treatment_column,
+  negative_control_name,
+  positive_control_name = NA,
+  start_colour = "#0085ca"
 ) {
   data <- calc_inhibition_metrics(
     model_list = model_list,
@@ -572,42 +577,42 @@ plot_curve_concentration_metric_time <- function(
     negative_control_name = negative_control_name,
     positive_control_name = positive_control_name
   )
-  
+
   data$y <- data[[metric]]
-  
+
   data <- assign_condition(
     data,
     treatment_column,
     negative_control_name,
     positive_control_name
   )
-  
+
   data <- data[is.finite(data[[metric]]), ]
-  
+
   concentration_info <- extract_concentration_info(
     data,
     concentration_column,
     positive_control_name
   )
-  
+
   # Generate palette and labels
   tints <- make_concentration_palette(
-    unique_concs =  concentration_info$unique_concs,
+    unique_concs = concentration_info$unique_concs,
     positive_control_name = positive_control_name,
     start_colour = start_colour,
     exclude_concs = concentration_info$exclude_concs
   )
   labels <- make_concentration_labels(
-    unique_concs =  concentration_info$unique_concs,
+    unique_concs = concentration_info$unique_concs,
     negative_control_name = negative_control_name,
     negative_control_conc = concentration_info$negative_control_conc,
     positive_control_name = positive_control_name,
     positive_control_conc = concentration_info$positive_control_conc
   )
-  
+
   # Create colour vector
   data <- assign_colour_vec(data, concentration_column)
-  
+
   gg <- ggplot2::ggplot() +
     ggplot2::geom_hline(yintercept = 0, linetype = "dashed") +
     ggplot2::geom_line(
@@ -636,7 +641,7 @@ plot_curve_concentration_metric_time <- function(
     ggplot2::ylim(c(-1, 1)) +
     ggplot2::labs(x = x_var, y = metric) +
     theme_incur()
-  
+
   return(list(data = data, plot = gg))
 }
 
@@ -668,12 +673,14 @@ plot_curve_concentration_metric_time <- function(
 #'     \item `lower_bounds`: A named list that specifies the lower bounds for parameters in `model_func`.
 #'     \item `upper_bounds`:A named list that specifies the upper bounds for parameters in `model_func`.
 #'   }
-#' @param lower_bounds TODO: description.
+#' @param start_colour Hex colour string for the highest concentration. Lower
+#'   concentrations are displayed as progressively lighter tints. Default is
+#'   \code{"#0085ca"}.
 #' @description
 #' Fits and visualises a dose-response curve showing the relationship between
 #' drug concentration and growth rate inhibition metric, with time indicated
 #' by point colour.
-#' @return 
+#' @return
 #' A list containing:
 #'   \describe{
 #'     \item{data}{The processed data frame with calculated metrics}
@@ -698,21 +705,22 @@ plot_curve_concentration_metric_time <- function(
 #' }
 #' @importFrom ggplot2 ggplot aes geom_hline geom_point geom_line
 #'   scale_x_continuous scale_colour_viridis_c ylim labs guides
+#' @importFrom geomtextpath geom_textvline
 #' @export
 plot_curve_concentration_metric_dose <- function(
-    model_list,
-    x_var,
-    metric = "gr",
-    concentration_column,
-    treatment_column,
-    negative_control_name,
-    positive_control_name = NA,
-    curve_opts = list(
-      model = "five_param_sigmoid_log",
-      lower_bounds = list(bottom = -1),
-      upper_bounds = list(top = 1)
-    ),
-    start_colour = "#0085ca"
+  model_list,
+  x_var,
+  metric = "gr",
+  concentration_column,
+  treatment_column,
+  negative_control_name,
+  positive_control_name = NA,
+  curve_opts = list(
+    model = "five_param_sigmoid_log",
+    lower_bounds = list(bottom = -1),
+    upper_bounds = list(top = 1)
+  ),
+  start_colour = "#0085ca"
 ) {
   data <- calc_inhibition_metrics(
     model_list = model_list,
@@ -723,43 +731,43 @@ plot_curve_concentration_metric_dose <- function(
     negative_control_name = negative_control_name,
     positive_control_name = positive_control_name
   )
-  
+
   data$time <- data$x
   data$x <- data[[concentration_column]]
   data$y <- data[[metric]]
-  
+
   data <- assign_condition(
     data,
     treatment_column,
     negative_control_name,
     positive_control_name
   )
-  
+
   data <- data[is.finite(data[[metric]]), ]
   data <- data[data$condition == "treatment", ]
-  
+
   fitted_model <- fit_curve(
     data = data,
     x_var = concentration_column,
     y_var = metric,
     curve_opts = curve_opts
   )
-  
+
   predicted <- predict_data(
     obj = fitted_model$fit$obj,
     lower_x = min(fitted_model$data$x),
     upper_x = max(fitted_model$data$x)
   )
-  
+
   metric_50 <- try(
     find_x_for_y(
-      fit = fitted_model$fit$obj,
+      obj = fitted_model$fit$obj,
       x_values = predicted$x,
       target = 0.5
     ),
     silent = TRUE
   )
-  
+
   gg <- ggplot2::ggplot() +
     ggplot2::geom_hline(yintercept = 0, linetype = "dashed") +
     ggplot2::geom_point(
@@ -783,7 +791,7 @@ plot_curve_concentration_metric_dose <- function(
     ggplot2::labs(x = concentration_column, y = metric) +
     ggplot2::guides(colour = "none") +
     theme_incur()
-  
+
   if (!inherits(metric_50, "try-error")) {
     gg <- gg +
       geomtextpath::geom_textvline(
@@ -794,7 +802,7 @@ plot_curve_concentration_metric_dose <- function(
         size = 10 / ggplot2::.pt
       )
   }
-  
+
   return(list(data = data, plot = gg))
 }
 
@@ -832,7 +840,7 @@ plot_curve_concentration_metric_dose <- function(
 #' from time-course drug response data. Fits a dose-response curve to
 #' normalised area-over-curve values and reports both raw and
 #' goodness-of-fit-adjusted LGR scores.
-#' @return 
+#' @return
 #' A \code{ggplot2} object displaying:
 #'   \itemize{
 #'     \item Points showing normalised AOC values at each concentration
@@ -873,18 +881,18 @@ plot_curve_concentration_metric_dose <- function(
 #'   labs guides ggtitle
 #' @export
 plot_lgr_score <- function(
-    model_list,
-    x_var,
-    metric = "gr",
-    treatment_column,
-    negative_control_name,
-    positive_control_name = NA,
-    concentration_column,
-    curve_opts = list(
-      model = "five_param_sigmoid_log",
-      lower_bounds = list(bottom = 0),
-      upper_bounds = list(top = 100)
-      )
+  model_list,
+  x_var,
+  metric = "gr",
+  treatment_column,
+  negative_control_name,
+  positive_control_name = NA,
+  concentration_column,
+  curve_opts = list(
+    model = "five_param_sigmoid_log",
+    lower_bounds = list(bottom = 0),
+    upper_bounds = list(top = 100)
+  )
 ) {
   data <- calc_inhibition_metrics(
     model_list = model_list,
@@ -895,70 +903,70 @@ plot_lgr_score <- function(
     negative_control_name = negative_control_name,
     positive_control_name = positive_control_name
   )
-  
+
   data <- assign_condition(
     data,
     treatment_column,
     negative_control_name,
     positive_control_name
   )
-  
+
   data <- data[is.finite(data[[metric]]), ]
-  
+
   concentration_info <- extract_concentration_info(
     data,
     concentration_column,
     positive_control_name
   )
-  
+
   data <- data[is.finite(data$gr), ]
   data <- data[data$condition == "treatment", ]
-  
+
   auc_values <- lapply(unique(data[[concentration_column]]), function(a) {
     data_filt <- data[data[[concentration_column]] == a, ]
     auc_trapezoid(data_filt$x, data_filt[[metric]] + 1)
   })
-  
+
   auc_data <- data.frame(
     concentration = unique(data[[concentration_column]]),
     auc = unlist(auc_values)
   )
-  
+
   total_time <- max(data$x, na.rm = TRUE) - min(data$x, na.rm = TRUE)
-  
+
   total_bounding_area <- 2 * total_time
   aoc_values <- total_bounding_area - unlist(auc_values)
   aoc_values_norm <- aoc_values / total_bounding_area * 100
-  
+
   auc_data <- data.frame(
     aoc = aoc_values_norm,
     concentration = unique(data[[concentration_column]])
   )
-  
+
   fitted_model <- fit_curve(
     data = auc_data,
     x_var = "concentration",
     y_var = "aoc",
     curve_opts = curve_opts
   )
-  
+
   predicted <- predict_data(
     obj = fitted_model$fit$obj,
     lower_x = min(fitted_model$data$x),
     upper_x = max(fitted_model$data$x)
   )
-  
+
   auc <- auc_trapezoid(predicted$x, predicted$y)
-  
+
   lgr_score <- auc / (max(auc_data$concentration) - min(auc_data$concentration))
-  
+
   # GOF - this is what dprl uses
   ss_res <- sum(residuals(fitted_model$fit$obj)^2)
   ss_total <- sum((auc_data$aoc - mean(auc_data$aoc))^2)
   gof <- 1 - (ss_res / ss_total)
-  
+
   lgr_score_adjusted <- lgr_score * gof
-  
+
   gg <- ggplot2::ggplot() +
     ggplot2::geom_point(
       auc_data,
@@ -993,6 +1001,6 @@ plot_lgr_score <- function(
       )
     ) +
     theme_incur()
-  
+
   return(gg)
 }

@@ -52,7 +52,9 @@ NDR values are calculated. Default is NULL.}
 \item \code{upper_bounds}:A named list that specifies the upper bounds for parameters in \code{model_func}.
 }}
 
-\item{lower_bounds}{TODO: description.}
+\item{start_colour}{Hex colour string for the highest concentration. Lower
+concentrations are displayed as progressively lighter tints. Default is
+\code{"#0085ca"}.}
 }
 \value{
 A list containing:
