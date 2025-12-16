@@ -503,9 +503,9 @@ set_default_opts <- function(
   )
 
   # Ensure NAs become empty lists
-  curve_opts <- if (is.null(curve_opts)) list() else curve_opts
-  shared_opts <- if (is.null(shared_opts)) list() else shared_opts
-  outlier_opts <- if (is.null(outlier_opts)) list() else outlier_opts
+  curve_opts <- if (all(is.na(curve_opts))) list() else curve_opts
+  shared_opts <- if (all(is.na(shared_opts))) list() else shared_opts
+  outlier_opts <- if (all(is.na(outlier_opts))) list() else outlier_opts
 
   # Merge defaults
   curve_opts <- modifyList(curve_defaults, curve_opts)
