@@ -4,7 +4,7 @@ Title: Analyse IncuCyte-derived and time-course dose-response experiments
 Description: A software package designed for analysing IncuCyte-derived data, with a strong focus on generalisable and automated non-linear regression for interpretation of growth curves and dose-response relationships.
 Version: 0.0.0.9000
 Authors@R: 
-    person("Zachery", "Moore", email = "moore.z@wehi.edu.au", role = c("aut", "cre"), comment = c(ORCID = 0000-0002-0898-0483))
+    person("Zachery", "Moore", email = "moore.z@wehi.edu.au", role = c("aut", "cre"), comment = "ORCID = 0000-0002-0898-0483")
 Imports: 
     geomtextpath,
     ggplot2,
@@ -18,5 +18,5 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 Depends: 
-    R (>= 3.50)
+    R (>= 4.10)
 LazyData: true
