@@ -52,7 +52,7 @@ find_identical_to_column <- function(data, target, coerce_to_char = TRUE) {
 #'   data = growth_data,
 #'   x_var = "time_hours",
 #'   y_var = "cell_count",
-#'   fit = fitted_model
+#'   obj = fitted_model
 #' )
 #' print(model_plot)
 #' # Return data for custom plotting
@@ -412,7 +412,11 @@ plot_curve_concentration <- function(
   data_list <- lapply(model_list, function(x) {
     x$data
   })
-
+  all_cols <- Reduce(union, lapply(data_list, names))
+  data_list <- lapply(data_list, function(d) {
+    d[all_cols] <- lapply(all_cols, function(x) d[[x]])
+    d
+  })
   data <- do.call(rbind, data_list)
   rownames(data) <- NULL
 

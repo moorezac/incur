@@ -25,7 +25,7 @@
 #' @param positive_control_name Character string identifying the positive
 #'   control (e.g., a cytotoxic agent) in \code{treatment_column}. If provided,
 #'   NDR values are calculated. Default is NULL.
-#' @return 
+#' @return
 #' A data frame containing the original data plus:
 #'  \itemize{
 #'    \item `gr`: Growth rate inhibition values, ranging from -1 (complete cell
@@ -52,16 +52,16 @@
 #' cancer drugs. \emph{Nature Methods}, 13(6), 521-527.
 #' @export
 calc_inhibition_metrics <- function(
-    data = NA,
-    model_list = NA,
-    x_var,
-    y_var,
-    treatment_column,
-    concentration_column,
-    negative_control_name,
-    positive_control_name = NA,
-    cap = TRUE,
-    return_all_columns = FALSE
+  data = NA,
+  model_list = NA,
+  x_var,
+  y_var,
+  treatment_column,
+  concentration_column,
+  negative_control_name,
+  positive_control_name = NA,
+  cap = TRUE,
+  return_all_columns = FALSE
 ) {
   if (!all(is.na(model_list))) {
     obj_list <- lapply(model_list, function(x) {
@@ -70,10 +70,17 @@ calc_inhibition_metrics <- function(
     data_list <- lapply(model_list, function(x) {
       x$data
     })
-    
+    all_cols <- Reduce(union, lapply(data_list, names))
+    data_list <- lapply(data_list, function(d) {
+      d[all_cols] <- lapply(all_cols, function(x) d[[x]])
+      d
+    })
+    data <- do.call(rbind, data_list)
+    rownames(data) <- NULL
+
     # If some scans are missing
     data_all <- do.call(rbind, data_list)
-    
+
     predictions <- mapply(
       obj_list,
       data_list,
@@ -87,10 +94,10 @@ calc_inhibition_metrics <- function(
           pred[[concentration_column]] <- unique(data[[concentration_column]])
           pred[[treatment_column]] <- unique(data[[treatment_column]])
           pred$exclude <- TRUE
-          
+
           return(pred)
         }
-        
+
         pred <- predict_data(
           obj = obj,
           lower_x = min(data_all$x),
@@ -98,7 +105,7 @@ calc_inhibition_metrics <- function(
         )
         pred[[concentration_column]] <- unique(data[[concentration_column]])
         pred[[treatment_column]] <- unique(data[[treatment_column]])
-        
+
         if ("exclude" %in% names(data) && all(data$exclude == FALSE)) {
           pred$exclude <- FALSE
         }
@@ -110,62 +117,66 @@ calc_inhibition_metrics <- function(
     data <- prep_data(data, x_var, y_var)
   }
   rownames(data) <- NULL
-  
+
   # Store original columns for later selection
   original_columns <- colnames(data)
-  
+
   data <- data[order(data$x), ]
-  
+
   data <- assign_condition(
     data,
     treatment_column,
     negative_control_name,
     positive_control_name
   )
-  
+
   combinations <- lapply(
     split(data[[concentration_column]], data[[treatment_column]]),
     unique
   )
   combinations <- stack(combinations)
   names(combinations) <- c("concentration", "treatment")
-  
+
   # Calculate time zero values for each treatment-concentration group
-  group_id <- paste(data[[treatment_column]], data[[concentration_column]], sep = "_")
+  group_id <- paste(
+    data[[treatment_column]],
+    data[[concentration_column]],
+    sep = "_"
+  )
   data$time_zero_values <- ave(
     data$y,
     group_id,
     FUN = function(y) rep(y[1], length(y))
   )
-  
+
   # Extract control time zero value
   negative_control_mask <- data[[treatment_column]] == negative_control_name
   negative_control_zero <- unique(data$time_zero_values[negative_control_mask])
-  
+
   if (length(negative_control_zero) != 1) {
     stop("Control group must have a unique time zero value")
   }
-  
+
   # Add control time zero to all rows
   data$negative_control_zero <- negative_control_zero
-  
+
   # Handle positive control if provided
   if (!is.na(positive_control_name)) {
     positive_control_mask <- data[[treatment_column]] == positive_control_name
     positive_control_zero <- unique(data$time_zero_values[
       positive_control_mask
     ])
-    
+
     if (length(positive_control_zero) != 1) {
       stop("Positive control group must have a unique time zero value")
     }
-    
+
     data$positive_control_zero <- positive_control_zero
   }
-  
+
   # Calculate normalized values
   data$normalised <- data$y / data$time_zero_values
-  
+
   # Get control normalized values for each time point
   unique_times <- unique(data$x)
   negative_control_at_time_norm <- numeric(length(
@@ -181,7 +192,7 @@ calc_inhibition_metrics <- function(
       na.rm = TRUE
     )
   }
-  
+
   # Create lookup and join
   negative_control_norm <- numeric(nrow(data))
   for (i in seq_along(unique_times)) {
@@ -189,13 +200,13 @@ calc_inhibition_metrics <- function(
     negative_control_norm[time_mask] <- negative_control_at_time_norm[i]
   }
   data$negative_control_norm <- negative_control_norm
-  
+
   # Handle positive control normalized values if provided
   if (!is.na(positive_control_name)) {
     positive_control_at_time_norm <- numeric(length(
       unique_times
     ))
-    
+
     for (i in seq_along(unique_times)) {
       t <- unique_times[i]
       positive_control_at_time <- data$normalised[
@@ -206,7 +217,7 @@ calc_inhibition_metrics <- function(
         na.rm = TRUE
       )
     }
-    
+
     # Create lookup and join
     positive_control_norm <- numeric(nrow(data))
     for (i in seq_along(unique_times)) {
@@ -215,9 +226,9 @@ calc_inhibition_metrics <- function(
     }
     data$positive_control_norm <- positive_control_norm
   }
-  
+
   all_treatment_names <- unique(data[[treatment_column]])
-  
+
   # Remove last time point per group
   keep_rows <- logical(nrow(data))
   for (treat in all_treatment_names) {
@@ -227,29 +238,29 @@ calc_inhibition_metrics <- function(
     }
   }
   data <- data[keep_rows, ]
-  
+
   # Calculate GR values
   data$gr <- 2^(log2(data$normalised) / log2(data$negative_control_norm)) - 1
-  
+
   # Apply cap to GR values if requested
   if (cap) {
     data$gr[data$gr > 1] <- 1
   }
-  
+
   # Calculate NDR values if positive control provided
   if (!is.na(positive_control_name)) {
     data$ndr <- (1 -
-                   2^(log2(data$normalised) / log2(data$positive_control_norm))) /
+      2^(log2(data$normalised) / log2(data$positive_control_norm))) /
       (1 -
-         2^(log2(data$negative_control_norm) / log2(data$positive_control_norm)))
-    
+        2^(log2(data$negative_control_norm) / log2(data$positive_control_norm)))
+
     # Clamp NDR values
     data$ndr[data$ndr > 1] <- 1
     data$ndr[data$ndr < -1] <- -1
   }
-  
+
   rownames(data) <- NULL
-  
+
   if ("exclude" %in% colnames(data)) {
     mask_exclude <- data$exclude
     data[mask_exclude, ]$gr <- -1
@@ -257,7 +268,7 @@ calc_inhibition_metrics <- function(
       data[mask_exclude, ]$ndr <- -1
     }
   }
-  
+
   # Select columns to return
   if (return_all_columns) {
     return(data)

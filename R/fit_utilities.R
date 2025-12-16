@@ -17,7 +17,7 @@
 #' \dontrun{
 #' # Calculate total growth over time
 #' auc_result <- calculate_auc(
-#'   fit = growth_fit,
+#'   obj = growth_fit,
 #'   lower_x = 0,
 #'   upper_x = 72  # 72 hours
 #' )
@@ -55,14 +55,14 @@ calculate_auc <- function(obj, lower_x, upper_x) {
 #' \dontrun{
 #' # Generate smooth prediction curve
 #' predictions <- predict_data(
-#'   fit = growth_fit,
+#'   obj = growth_fit,
 #'   lower_x = 0,
 #'   upper_x = 100,
 #'   num_points = 500
 #' )
 #' # For grouped model
 #' predictions <- predict_data(
-#'   fit = grouped_fit,
+#'   obj = grouped_fit,
 #'   lower_x = 0,
 #'   upper_x = 100,
 #'   group = c("cell_line_A", "cell_line_B")
