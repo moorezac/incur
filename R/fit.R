@@ -503,12 +503,6 @@ set_default_opts <- function(
   )
 
   # Ensure NAs become empty lists
-  if (!all(is.na(a))) {
-    a
-  } else {
-    b
-  }
-
   curve_opts <- if (is.null(curve_opts)) list() else curve_opts
   shared_opts <- if (is.null(shared_opts)) list() else shared_opts
   outlier_opts <- if (is.null(outlier_opts)) list() else outlier_opts
