@@ -277,7 +277,7 @@ summarise_trackmate <- function(
       names(df),
       c(
         datetime_column,
-        if (is.na(drop_cols)) character() else drop_cols
+        if (any(is.na(drop_cols))) character() else drop_cols
       )
     )
 
