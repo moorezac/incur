@@ -72,8 +72,11 @@ calc_inhibition_metrics <- function(
     })
     all_cols <- Reduce(union, lapply(data_list, names))
     data_list <- lapply(data_list, function(d) {
-      d[all_cols] <- lapply(all_cols, function(x) d[[x]])
-      d
+      missing <- setdiff(all_cols, names(d))
+      for (m in missing) {
+        d[[m]] <- NA
+      }
+      d[all_cols]
     })
     data <- do.call(rbind, data_list)
     rownames(data) <- NULL

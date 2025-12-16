@@ -8,6 +8,10 @@
 #' Create `x` and `y` columns from specified variable names.
 #' @keywords internal
 prep_data <- function(data, x_var, y_var) {
+  # Extract columns by name
+  x <- data[[x_var]]
+  y <- data[[y_var]]
+
   # If already done
   if (all(c("x", "y", "x_original", "y_original") %in% colnames(data))) {
     return(data)
@@ -22,10 +26,6 @@ prep_data <- function(data, x_var, y_var) {
       sep = ""
     )
   }
-
-  # Extract columns by name
-  x <- data[[x_var]]
-  y <- data[[y_var]]
 
   # Subset data and coerce to numeric
   keep <- !(is.na(x) | is.na(y))
