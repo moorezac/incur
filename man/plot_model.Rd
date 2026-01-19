@@ -33,7 +33,7 @@ model_plot <- plot_model(
   data = growth_data,
   x_var = "time_hours",
   y_var = "cell_count",
-  fit = fitted_model
+  obj = fitted_model
 )
 print(model_plot)
 # Return data for custom plotting

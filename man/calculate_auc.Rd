@@ -29,7 +29,7 @@ Calculate the area under the curve (AUC) for a fitted model between specified bo
 \dontrun{
 # Calculate total growth over time
 auc_result <- calculate_auc(
-  fit = growth_fit,
+  obj = growth_fit,
   lower_x = 0,
   upper_x = 72  # 72 hours
 )

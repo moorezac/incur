@@ -36,7 +36,7 @@ when testing multiple points for outlier status.
 \dontrun{
 # Identify outliers in fitted model
 outlier_indices <- find_rout_indices(
-  fit = fitted_model,
+  obj = fitted_model,
   rout_opts = list(q = 0.01, scale_method = "mad")
 )
 }

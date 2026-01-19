@@ -33,14 +33,14 @@ of x values. Supports both single and grouped models.
 \dontrun{
 # Generate smooth prediction curve
 predictions <- predict_data(
-  fit = growth_fit,
+  obj = growth_fit,
   lower_x = 0,
   upper_x = 100,
   num_points = 500
 )
 # For grouped model
 predictions <- predict_data(
-  fit = grouped_fit,
+  obj = grouped_fit,
   lower_x = 0,
   upper_x = 100,
   group = c("cell_line_A", "cell_line_B")

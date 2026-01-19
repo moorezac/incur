@@ -13,9 +13,12 @@ attempt_fit <- function(args, data, func) {
 
   # Build the call using base R
   call_obj <- as.call(c(
-    list(quote(minpack.lm::nlsLM), data = quote(data)),
+    list(quote(minpack.lm::nlsLM)),
+    list(data = quote(data)),
     args
   ))
+  # print("Call object:")
+  # print(call_obj)
 
   # Create evaluation environment
   fit_env <- new.env(parent = parent.frame())
@@ -105,9 +108,9 @@ make_bounds <- function(func, lower_x = NA, upper_x = NA) {
   formals <- names(formals(func))
   formals <- formals[!formals %in% c("x", "group")]
 
-  # If only one supplied
+  # If only one supplied - fix: use all(is.na()) for lists
   final_list <- list(lower = lower_x, upper = upper_x)
-  final_list <- final_list[!sapply(final_list, is.na)]
+  final_list <- final_list[!sapply(final_list, function(x) all(is.na(x)))]
 
   # Check bounded args exist
   for (i in names(final_list)) {
@@ -135,9 +138,9 @@ make_bounds <- function(func, lower_x = NA, upper_x = NA) {
     }
     names(full) <- formals
 
-    # Replace with provided values
+    # Replace with provided values - FIX: use name matching
     replace <- unlist(x)
-    full[names(full) %in% names(replace)] <- replace
+    full[names(replace)] <- replace
 
     result[[i]] <- full
   }
@@ -431,11 +434,23 @@ prep_args <- function(
   )
 
   # Bounds
-  if (!is.na(lower_bounds) | !is.na(upper_bounds)) {
+  if (!all(is.na(lower_bounds)) | !all(is.na(upper_bounds))) {
     bounds <- make_bounds(model_func, lower_bounds, upper_bounds)
+
+    # CRITICAL: Reorder bounds to match start parameter order
+    param_order <- names(final_args$start)
+    if (!is.null(bounds$lower)) {
+      bounds$lower <- bounds$lower[param_order]
+    }
+    if (!is.null(bounds$upper)) {
+      bounds$upper <- bounds$upper[param_order]
+    }
+
     final_args <- append(final_args, bounds)
   }
 
+  # print("Final args being passed to nlsLM:")
+  # print(final_args)
   return(final_args[!sapply(final_args, is.null)])
 }
 
@@ -631,6 +646,8 @@ fit_curve <- function(
 
   if (is.na(curve_opts$start_values)) {
     start_values <- start_func(x = data$x, y = data$y)
+  } else {
+    start_values <- curve_opts$start_values
   }
 
   if (is_shared) {
