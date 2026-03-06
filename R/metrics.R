@@ -284,3 +284,190 @@ calc_inhibition_metrics <- function(
     return(data[, cols_to_select])
   }
 }
+
+#' Calculate All Drug Response Metrics
+#' @description
+#' Computes summary drug response metrics (GR50, LGR score) for one or more
+#'   inhibition metrics (GR and optionally NDR) from a list of fitted model
+#'   objects. For each metric, fits a dose-response curve, extracts the
+#'   half-maximal inhibitory concentration, and calculates a goodness-of-fit
+#'   adjusted LGR (Longitudinal Growth Rate) score.
+#' @param model_list A named list of model results, typically output from
+#'   \code{\link{interpolate_curve_concentration}}. Each element should contain
+#'   \code{selected} (the fitted model) and \code{data} (the subset of data).
+#' @param x_var Character string specifying the column name for the independent
+#'   variable (typically time).
+#' @param concentration_column Character string specifying the column containing
+#'   drug concentrations in log10 molar format.
+#' @param treatment_column Character string specifying the column containing
+#'   treatment identifiers.
+#' @param negative_control_name Character string identifying the negative
+#'   control (e.g., "DMSO" or "Vehicle") in \code{treatment_column}.
+#' @param positive_control_name Character string identifying the positive
+#'   control (e.g., a cytotoxic agent) in \code{treatment_column}. If provided,
+#'   NDR-based metrics are also calculated. Default is \code{NA}.
+#' @return
+#' A named list containing summary metrics for each inhibition metric computed.
+#' For GR (and NDR if applicable), the list includes:
+#' \itemize{
+#'   \item \code{gr}: GR50 value as a formatted concentration string.
+#'   \item \code{lgr_gr}: Goodness-of-fit adjusted LGR score derived from GR
+#'     values, expressed as a percentage of the normalised area over the
+#'     dose-response curve.
+#'   \item \code{ndr}: NDR50 value as a formatted concentration string (only if
+#'     \code{positive_control_name} is provided).
+#'   \item \code{lgr_ndr}: Goodness-of-fit adjusted LGR score derived from NDR
+#'     values (only if \code{positive_control_name} is provided).
+#' }
+#' @details
+#' For each inhibition metric, the function:
+#' \enumerate{
+#'   \item Calls \code{\link{calc_inhibition_metrics}} to compute per-timepoint
+#'     GR or NDR values from the model predictions.
+#'   \item Fits a five-parameter sigmoid dose-response curve to the metric
+#'     values across concentrations.
+#'   \item Identifies the concentration at which the metric equals 0.5
+#'     (GR50 or NDR50) using root-finding on the fitted curve.
+#'   \item Computes per-concentration area under the curve (AUC) using the
+#'     trapezoidal rule, then derives a normalised area over the curve (AOC)
+#'     as a percentage of the total bounding area.
+#'   \item Fits a second dose-response curve to the AOC values across
+#'     concentrations and integrates it to yield a scalar LGR score.
+#'   \item Adjusts the LGR score by the goodness-of-fit (R²) of the AOC
+#'     curve fit, penalising poorly constrained curves.
+#' }
+#' The LGR score captures the overall magnitude and shape of the drug response
+#' across the full concentration range, rather than relying on a single summary
+#' statistic. Goodness-of-fit adjustment follows the approach used in the
+#' DPRL pipeline.
+#' @seealso \code{\link{calc_inhibition_metrics}}, \code{\link{fit_curve}},
+#'   \code{\link{predict_data}}, \code{\link{find_x_for_y}},
+#'   \code{\link{auc_trapezoid}}
+#' @references
+#' Hafner, M., Niepel, M., Chung, M., & Sorger, P. K. (2016). Growth rate
+#' inhibition metrics correct for confounders in measuring sensitivity to
+#' cancer drugs. \emph{Nature Methods}, 13(6), 521-527.
+#' @export
+calc_all_metrics <- function(
+  model_list,
+  x_var,
+  concentration_column,
+  treatment_column,
+  negative_control_name,
+  positive_control_name = NA
+) {
+  if (!is.na(positive_control_name)) {
+    metrics <- c("gr", "ndr")
+  } else {
+    metrics <- c("gr")
+  }
+
+  metric_list <- list()
+
+  for (metric in metrics) {
+    data <- calc_inhibition_metrics(
+      model_list = model_list,
+      x_var = x_var,
+      y_var = metric,
+      concentration_column = concentration_column,
+      treatment_column = treatment_column,
+      negative_control_name = negative_control_name,
+      positive_control_name = positive_control_name
+    )
+
+    data <- assign_condition(
+      data,
+      treatment_column,
+      negative_control_name,
+      positive_control_name
+    )
+
+    data <- data[is.finite(data[[metric]]), ]
+    data <- data[is.finite(data$gr), ]
+    data <- data[data$condition == "treatment", ]
+
+    fitted_model <- fit_curve(
+      data = data,
+      x_var = concentration_column,
+      y_var = metric,
+      curve_opts = list(
+        model = "five_param_sigmoid_log",
+        lower_bounds = list(bottom = -1),
+        upper_bounds = list(top = 1)
+      )
+    )
+
+    predicted <- predict_data(
+      obj = fitted_model$fit$obj,
+      lower_x = min(fitted_model$data$x),
+      upper_x = max(fitted_model$data$x)
+    )
+
+    metric_50 <- try(
+      find_x_for_y(
+        obj = fitted_model$fit$obj,
+        x_values = predicted$x,
+        target = 0.5
+      ),
+      silent = TRUE
+    )
+
+    metric_list[[metric]] <- log_m_to_str(metric_50$root)
+
+    auc_values <- lapply(unique(data[[concentration_column]]), function(a) {
+      data_filt <- data[data[[concentration_column]] == a, ]
+      auc_trapezoid(data_filt$x, data_filt[[metric]] + 1)
+    })
+
+    auc_data <- data.frame(
+      concentration = unique(data[[concentration_column]]),
+      auc = unlist(auc_values)
+    )
+
+    total_time <- max(data$x, na.rm = TRUE) - min(data$x, na.rm = TRUE)
+
+    total_bounding_area <- 2 * total_time
+    aoc_values <- total_bounding_area - unlist(auc_values)
+    aoc_values_norm <- aoc_values / total_bounding_area * 100
+
+    auc_data <- data.frame(
+      aoc = aoc_values_norm,
+      concentration = unique(data[[concentration_column]])
+    )
+
+    fitted_model <- fit_curve(
+      data = auc_data,
+      x_var = "concentration",
+      y_var = "aoc",
+      curve_opts = list(
+        model = "five_param_sigmoid_log"
+      )
+    )
+
+    predicted <- predict_data(
+      obj = fitted_model$fit$obj,
+      lower_x = min(fitted_model$data$x),
+      upper_x = max(fitted_model$data$x)
+    )
+
+    auc <- auc_trapezoid(predicted$x, predicted$y)
+
+    lgr_score <- auc /
+      (max(auc_data$concentration) - min(auc_data$concentration))
+
+    # GOF - this is what dprl uses
+    ss_res <- sum(residuals(fitted_model$fit$obj)^2)
+    ss_total <- sum((auc_data$aoc - mean(auc_data$aoc))^2)
+    gof <- 1 - (ss_res / ss_total)
+
+    lgr_score_adjusted <- lgr_score * gof
+
+    lgr_adj_str <- paste("lgr_adj", metric, sep = "_")
+    lgr_str <- paste("lgr", metric, sep = "_")
+
+    metric_list[[lgr_adj_str]] <- lgr_score_adjusted
+    metric_list[[lgr_str]] <- lgr_score
+  }
+
+  return(metric_list)
+}

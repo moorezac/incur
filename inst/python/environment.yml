@@ -1,0 +1,40 @@
+name: incur
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10
+  - pip:
+      - Jinja2==3.1.6
+      - MarkupSafe==3.0.3
+      - PyQt6==6.10.1
+      - PyQt6-Qt6==6.10.1
+      - PyQt6_sip==13.10.3
+      - Pygments==2.19.2
+      - QtPy==2.4.3
+      - cellpose==4.0.8
+      - colorama==0.4.6
+      - fastremap==1.17.7
+      - filelock==3.20.1
+      - fill_voids==2.1.1
+      - fsspec==2025.12.0
+      - imagecodecs==2025.3.30
+      - mpmath==1.3.0
+      - natsort==8.4.0
+      - networkx==3.4.2
+      - numpy==2.2.6
+      - opencv-python-headless==4.12.0.88
+      - packaging==25.0
+      - pillow==12.0.0
+      - pyqtgraph==0.14.0
+      - roifile==2025.12.12
+      - scipy==1.15.3
+      - segment-anything==1.0
+      - superqt==0.7.7
+      - sympy==1.14.0
+      - tifffile==2025.5.10
+      - torch==2.9.1
+      - torchvision==0.24.1
+      - tqdm==4.67.1
+      - typing_extensions==4.15.0
+
+prefix: "micromamba/envs/incur"
