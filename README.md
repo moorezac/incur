@@ -14,7 +14,9 @@ remotes::install_github("moorezac/incur")
 
 The principle goal of incur is to provide a user-friendly pipeline to export, segment, and analyse IncuCyte-derived data. 
 
-However, the automated curve fitting functions are able to be used on any dataset, and includes option for shared parameters across groups, outlier detection, and upper/lower limits on parameters.
+However, the automated curve fitting functions are able to be used on any dataset, and includes option for shared parameters across groups, outlier detection, and upper/lower limits on parameters. See below for built-in options
+
+![Alt text](images/example_curves.jpg)
 
 ## Learn
 
