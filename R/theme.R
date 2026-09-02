@@ -1,25 +1,25 @@
-#' ggplot2 Theme for incur Package
+#' ggplot2 Theme for dosefitr Package
 #' @param font_size TODO: description.
 #' @param font_small TODO: description.
 #' @param font_large TODO: description.
 #' @param linewidth TODO: description.
 #' @description
-#' A clean ggplot2 theme designed for the incur package. Provides consistent
+#' A clean ggplot2 theme designed for the dosefitr package. Provides consistent
 #'    styling across plotting functions.
 #' @examples
 #' \dontrun{
-#' # Apply incur theme to any ggplot
+#' # Apply dosefitr theme to any ggplot
 #' library(ggplot2)
 #' ggplot(data, aes(x, y)) +
 #'   geom_point() +
-#'   theme_incur()
+#'   theme_dosefitr()
 #' }
 #' @export
-theme_incur <- function(
-    font_size = 10,
-    font_small = 8,
-    font_large = 12,
-    linewidth = 1
+theme_dosefitr <- function(
+  font_size = 10,
+  font_small = 8,
+  font_large = 12,
+  linewidth = 1
 ) {
   ggplot2::theme(
     axis.line = ggplot2::element_line(linewidth = linewidth / ggplot2::.pt),

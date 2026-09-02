@@ -7,7 +7,7 @@
 #'   variable (typically time).
 #' @param y_var Character string specifying the column name for the dependent
 #'   variable (e.g., cell count, confluence, or a calculated metric).
-#' @param models Character vector of model names from `incur_models`.
+#' @param models Character vector of model names from `dosefitr_models`.
 #' @param outlier_opts A named list of shared parameter options. Elements include:
 #'  \itemize{
 #'     \item `huber`: Logical; use Huber robust regression? (default: FALSE).
@@ -28,57 +28,50 @@
 #'  }
 #'  Returns NA if no models fit successfully.
 #' @keywords internal
-select_best_model <- function(
-  data,
-  x_var,
-  y_var,
-  models,
-  outlier_opts = NA
-) {
+select_best_model <- function(data, x_var, y_var, models, outlier_opts = NA) {
   successful_fits <- list()
+  failures <- list()
 
   for (model in models) {
-    curve_opts <- list(model = model)
-
-    # This feels a little jank
     fit_result <- tryCatch(
-      {
-        expr <- suppressMessages(suppressWarnings(fit_curve(
-          data = data,
-          x_var = x_var,
-          y_var = y_var,
-          curve_opts = curve_opts,
-          outlier_opts = outlier_opts
-        )))
-      },
-      error = function(e) {
-        invisible()
+      suppressMessages(suppressWarnings(fit_curve(
+        data = data,
+        x_var = x_var,
+        y_var = y_var,
+        curve_opts = list(model = model),
+        outlier_opts = outlier_opts
+      ))),
+      dosefitr_fit_error = function(e) {
+        failures[[model]] <<- e$errors
+        NULL
       }
     )
 
-    if (!inherits(fit_result, "try-error")) {
+    if (!is.null(fit_result)) {
       successful_fits[[model]] <- fit_result
     }
   }
 
   if (length(successful_fits) == 0) {
-    return(NA)
+    return(list(
+      selected = NULL,
+      all_fits = list(),
+      chosen_model = NA,
+      bic_values = NULL,
+      failures = failures
+    ))
   }
 
-  # Extract fit objects and calculate BIC
-  obj_list <- lapply(successful_fits, function(x) {
-    x$fit$obj
-  })
-  bic_vals <- sapply(obj_list, BIC)
-
-  # Select best model
+  obj_list <- lapply(successful_fits, function(x) x$fit$obj)
+  bic_vals <- vapply(obj_list, BIC, numeric(1))
   chosen <- names(which.min(bic_vals))
 
   list(
     selected = successful_fits[[chosen]],
     all_fits = successful_fits,
     chosen_model = chosen,
-    bic_values = bic_vals
+    bic_values = bic_vals,
+    failures = failures
   )
 }
 
@@ -114,7 +107,7 @@ select_best_model <- function(
 #'     \item `rout_q`: False discovery rate for ROUT (default: 1e-3).
 #'     \item `rout_scale`: Scale estimator for ROUT, either "mad" or "quantile" (default: "mad").
 #'   }
-#' @param models Character vector of model names from `incur_models`.
+#' @param models Character vector of model names from `dosefitr_models`.
 #' @return
 #' A list containing:
 #'  \itemize{
@@ -146,7 +139,7 @@ interpolate_curve_concentration <- function(
   loess = FALSE,
   loess_span = 0.3,
   outlier_opts = NA,
-  models = names(incur_models)
+  models = names(dosefitr_models)
 ) {
   data <- prep_data(data, x_var, y_var)
 
@@ -210,9 +203,48 @@ interpolate_curve_concentration <- function(
           models = models,
           outlier_opts = outlier_opts_original
         )
+
+        if (is.null(model_selection$selected)) {
+          raw <- unique(unlist(model_selection$failures))
+          hints <- unique(Filter(
+            Negate(is.null),
+            lapply(raw, translate_fit_error)
+          ))
+
+          msg <- sprintf(
+            "No model could be fitted for '%s' at concentration %s.%s",
+            treat,
+            conc,
+            if (length(hints)) {
+              paste0("\n", paste0(hints, collapse = "\n"))
+            } else {
+              ""
+            }
+          )
+
+          # The control anchors every GR/NDR/LGR calculation
+          if (identical(as.character(treat), negative_control_name)) {
+            stop_unable_to_fit(
+              paste0(
+                msg,
+                "\nThis is the negative control, so no metrics can be calculated."
+              ),
+              errors = raw
+            )
+          }
+
+          warning(msg, call. = FALSE)
+          data_filtered$exclude <- TRUE
+          return(list(
+            selected = NA,
+            data = data_filtered,
+            prediction_data = NA
+          ))
+        }
+
         chosen_model <- model_selection$chosen_model
 
-        if (!length(model_selection$all_fits)) {
+        if (is.null(model_selection)) {
           stop(sprintf(
             "No models converged for %s at concentration %s",
             treat,
@@ -308,7 +340,7 @@ interpolate_curve_concentration <- function(
     ) +
     ggplot2::labs(x = x_var, y = y_var) +
     ggplot2::theme(plot.title = ggplot2::element_text(size = 8)) +
-    theme_incur() +
+    theme_dosefitr() +
     ggplot2::facet_wrap(
       ~facet,
       scales = "free_y"

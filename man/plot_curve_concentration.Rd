@@ -68,5 +68,5 @@ p <- plot_curve_concentration(
 }
 \seealso{
 \code{\link{interpolate_curve_concentration}},
-\code{\link{calc_inhibition_metrics}}, \code{\link{theme_incur}}
+\code{\link{calc_inhibition_metrics}}, \code{\link{theme_dosefitr}}
 }

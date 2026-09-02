@@ -75,3 +75,84 @@ log_m_to_str <- function(log_m, digits = 2) {
     USE.NAMES = FALSE
   )
 }
+
+stop_unable_to_fit <- function(
+  message,
+  errors = character(),
+  call = sys.call(-1)
+) {
+  stop(structure(
+    class = c("dosefitr_fit_error", "error", "condition"),
+    list(
+      message = message,
+      call = call,
+      errors = errors
+    )
+  ))
+}
+
+check_fit_data <- function(data, x_var, y_var, n_params) {
+  missing_cols <- setdiff(c(x_var, y_var), names(data))
+  if (length(missing_cols)) {
+    stop_unable_to_fit(sprintf(
+      "Column%s not found in data: %s",
+      if (length(missing_cols) > 1) "s" else "",
+      paste(missing_cols, collapse = ", ")
+    ))
+  }
+
+  x <- data[[x_var]]
+  y <- data[[y_var]]
+  keep <- is.finite(x) & is.finite(y)
+
+  if (!any(keep)) {
+    stop_unable_to_fit(
+      "No finite observations: every row has a missing or infinite value."
+    )
+  }
+  if (sum(keep) < n_params) {
+    stop_unable_to_fit(sprintf(
+      "Not enough data to fit: %d usable observation%s for a model with %d parameters.",
+      sum(keep),
+      if (sum(keep) == 1) "" else "s",
+      n_params
+    ))
+  }
+  if (length(unique(y[keep])) == 1) {
+    stop_unable_to_fit(sprintf(
+      "'%s' is constant (%g) across all observations, so no curve can be fitted.",
+      y_var,
+      y[keep][1]
+    ))
+  }
+  invisible(TRUE)
+}
+
+translate_fit_error <- function(msg) {
+  patterns <- list(
+    c(
+      "singular gradient",
+      "The model could not be distinguished from a simpler one with this data (singular gradient). Try a model with fewer parameters, or supply starting values."
+    ),
+    c(
+      "NA/NaN/Inf|Missing value or an infinity",
+      "The model produced non-finite values during fitting. Check for zero or negative values where the model expects positive ones (e.g. log or power terms)."
+    ),
+    c(
+      "number of iterations exceeded|maximum number of iterations",
+      "Fitting did not converge within the iteration limit. Try increasing 'maxiter', or supply starting values closer to the expected result."
+    ),
+    c(
+      "parameters without starting value|'start'",
+      "One or more model parameters had no starting value."
+    ),
+    c(
+      "could not find function|object '.*' not found",
+      "The model formula referred to something that doesn't exist. This is likely a problem with the model definition rather than your data."
+    )
+  )
+  for (p in patterns) {
+    if (grepl(p[1], msg, ignore.case = TRUE)) return(p[2])
+  }
+  NULL
+}

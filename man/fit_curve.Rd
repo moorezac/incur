@@ -24,7 +24,7 @@ variable (e.g., cell count, confluence, or a calculated metric).}
 
 \item{curve_opts}{A named list of curve fitting options. Elements include:
 \itemize{
-\item \code{model}: Character string specifying a built-in model from \code{incur_models} or "loess".
+\item \code{model}: Character string specifying a built-in model from \code{dosefitr_models} or "loess".
 \item \code{model_func}: A function that describes a curve in terms of x (used if \code{model} is NA).
 \item \code{start_func}: A function that generates a named list of starting values for \code{model_func} (used if \code{model} is NA).
 \item \code{start_values}: A named list of starting values for \code{model_func}.

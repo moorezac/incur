@@ -8,51 +8,38 @@
 #' @importFrom minpack.lm nlsLM
 #' @keywords internal
 attempt_fit <- function(args, data, func) {
-  warning_list <- list()
-  error_list <- list()
+  warning_list <- character()
+  error_list <- character()
 
-  # Build the call using base R
   call_obj <- as.call(c(
     list(quote(minpack.lm::nlsLM)),
     list(data = quote(data)),
     args
   ))
-  # print("Call object:")
-  # print(call_obj)
 
-  # Create evaluation environment
   fit_env <- new.env(parent = parent.frame())
   fit_env$data <- data
   fit_env$f <- func
 
-  # Mute outputs
   result <- withCallingHandlers(
     tryCatch(
-      {
-        list(obj = eval(call_obj, envir = fit_env))
-      },
+      list(obj = eval(call_obj, envir = fit_env)),
       error = function(e) {
-        error_list <<- append(error_list, list(e))
+        error_list <<- c(error_list, conditionMessage(e))
         list(obj = NA)
       }
     ),
     warning = function(w) {
-      warning_list <<- append(warning_list, list(w))
-      invokeRestart("muffleWarning")
+      warning_list <<- c(warning_list, conditionMessage(w))
+      tryInvokeRestart("muffleWarning")
     }
   )
 
-  result$warnings <- warning_list
-  result$errors <- error_list
+  result$ok <- !length(error_list)
+  result$warnings <- if (length(warning_list)) warning_list else NA_character_
+  result$errors <- if (length(error_list)) error_list else NA_character_
 
-  if (!length(result$warnings)) {
-    result$warnings <- NA_character_
-  }
-  if (!length(result$errors)) {
-    result$errors <- NA_character_
-  }
-
-  return(result)
+  result
 }
 
 
@@ -458,7 +445,7 @@ prep_args <- function(
 #' Set Default Options
 #' @param curve_opts A named list of curve fitting options. Elements include:
 #'   \itemize{
-#'     \item `model`: Character string specifying a built-in model from \code{incur_models} or "loess".
+#'     \item `model`: Character string specifying a built-in model from \code{dosefitr_models} or "loess".
 #'     \item `model_func`: A function that describes a curve in terms of x (used if \code{model} is NA).
 #'     \item `start_func`: A function that generates a named list of starting values for `model_func` (used if \code{model} is NA).
 #'     \item `start_values`: A named list of starting values for `model_func`.
@@ -550,7 +537,7 @@ set_default_opts <- function(
 #'   variable (e.g., cell count, confluence, or a calculated metric).
 #' @param curve_opts A named list of curve fitting options. Elements include:
 #'   \itemize{
-#'     \item `model`: Character string specifying a built-in model from \code{incur_models} or "loess".
+#'     \item `model`: Character string specifying a built-in model from \code{dosefitr_models} or "loess".
 #'     \item `model_func`: A function that describes a curve in terms of x (used if \code{model} is NA).
 #'     \item `start_func`: A function that generates a named list of starting values for `model_func` (used if \code{model} is NA).
 #'     \item `start_values`: A named list of starting values for `model_func`.
@@ -626,16 +613,23 @@ fit_curve <- function(
       model_func <- NA
       start_func <- NA
     } else {
-      if (!curve_opts$model %in% names(incur_models)) {
+      if (!curve_opts$model %in% names(dosefitr_models)) {
         stop(sprintf("Not a built-in model: %s", curve_opts$model))
       }
-      model_func <- incur_models[[curve_opts$model]]$model_func
-      start_func <- incur_models[[curve_opts$model]]$start_func
+      model_func <- dosefitr_models[[curve_opts$model]]$model_func
+      start_func <- dosefitr_models[[curve_opts$model]]$start_func
     }
   } else {
     model_func <- curve_opts$model_func
     start_func <- curve_opts$start_func
   }
+
+  check_fit_data(
+    data = data,
+    x_var = x_var,
+    y_var = y_var,
+    n_params = length(formals(model_func)) - 1
+  )
 
   # Prepare
   data <- prep_data(
@@ -680,18 +674,43 @@ fit_curve <- function(
     func = params$model_func
   )
 
-  if (!is.na(fit$errors)) {
-    stop(paste("Error in fit:", fit$error, sep = " "))
+  if (!fit$ok) {
+    errors <- unique(unlist(fit$errors))
+    hints <- unique(Filter(Negate(is.null), translate_fit_error(errors)))
+
+    msg <- if (length(hints)) {
+      paste0(
+        "Unable to fit a model to this data:\n",
+        paste0(hints, collapse = "\n")
+      )
+    } else {
+      "Unable to fit a model to this data. Use conditionCall() or the 'errors' element of this condition for the underlying message."
+    }
+
+    stop_unable_to_fit(msg, errors = errors)
   }
+
+  # if (!is.na(fit$errors)) {
+  #   stop(paste("Error in fit:", fit$error, sep = " "))
+  # }
 
   if (is_outlier) {
     if (outlier_opts$huber) {
-      fit$obj <- huber_irwls(
-        obj = fit$obj,
-        args = args,
-        data = params$data,
-        model_func = params$model_func,
-        outlier_opts = outlier_opts
+      fit$obj <- tryCatch(
+        huber_irwls(
+          obj = fit$obj,
+          args = args,
+          data = params$data,
+          model_func = params$model_func,
+          outlier_opts = outlier_opts
+        ),
+        error = function(e) {
+          warning(
+            "Huber refinement failed; using the unweighted fit.",
+            call. = FALSE
+          )
+          fit$obj
+        }
       )
     }
     if (outlier_opts$rout) {
@@ -749,13 +768,11 @@ fit_curve <- function(
           func = params_filtered$model_func
         )
 
-        if (!is.na(fit_filtered$error)) {
-          message(paste(
-            "Error in fitting model without outliers:",
-            fit_filtered$error,
-            sep = " "
-          ))
-          message("Returning original object")
+        if (!fit_filtered$ok) {
+          message(
+            "Could not refit with removal of outliers; returning the original fit."
+          )
+          message(paste(fit_filtered$errors, collapse = "; "))
         } else {
           fit$obj <- fit_filtered$obj
         }

@@ -1,8 +1,8 @@
 ---
-title: "Running the incur imaging pipeline"
+title: "Running the dosefitr imaging pipeline"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Running the incur imaging pipeline}
+  %\VignetteIndexEntry{Running the dosefitr imaging pipeline}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -13,12 +13,12 @@ knitr::opts_chunk$set(
   comment  = "#>",
   eval     = FALSE
 )
-library(incur)
+library(dosefitr)
 ```
 
 ## Overview
 
-The `incur` package provides a three-step pipeline for processing high-content live-cell imaging data acquired on the IncuCyte platform:
+The `dosefitr` package provides a three-step pipeline for processing high-content live-cell imaging data acquired on the IncuCyte platform:
 
 1. **`run_merge_channels()`** — merge multi-channel time-series TIFFs into a single file per well.
 2. **`run_cellpose()`** — segment cells in each frame using Cellpose.
@@ -32,21 +32,21 @@ Each function is a thin R wrapper that calls a Python script bundled with the pa
 
 ### Python environment
 
-`incur` ships a conda environment specification at `inst/python/environment.yaml` that pins all required dependencies, including `cellpose==4.0.8`, `torch==2.9.1`, and `segment-anything==1.0`. Using this file is the recommended way to set up a working Python environment.
+`dosefitr` ships a conda environment specification at `inst/python/environment.yaml` that pins all required dependencies, including `cellpose==4.0.8`, `torch==2.9.1`, and `segment-anything==1.0`. Using this file is the recommended way to set up a working Python environment.
 
 #### Option A — micromamba (recommended)
 
-The `prefix` field in `environment.yaml` targets `micromamba/envs/incur`, so micromamba will install the environment there by default. If you do not already have micromamba, see <https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html>.
+The `prefix` field in `environment.yaml` targets `micromamba/envs/dosefitr`, so micromamba will install the environment there by default. If you do not already have micromamba, see <https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html>.
 
 ```{bash micromamba-install, engine="bash"}
 # Locate the bundled environment file
-ENV_FILE=$(Rscript -e 'cat(system.file("python", "environment.yml", package = "incur"))')
+ENV_FILE=$(Rscript -e 'cat(system.file("python", "environment.yml", package = "dosefitr"))')
 
-# Create the environment (installs to micromamba/envs/incur by default)
+# Create the environment (installs to micromamba/envs/dosefitr by default)
 micromamba env create -f "$ENV_FILE"
 
 # Activate and verify
-micromamba activate incur
+micromamba activate dosefitr
 python -c "import cellpose; print(cellpose.__version__)"
 ```
 
@@ -55,39 +55,39 @@ python -c "import cellpose; print(cellpose.__version__)"
 If you are already using conda or mamba, you can create a named environment from the same file. The `prefix` field in the YAML will be ignored in favour of the `-n` flag.
 
 ```{bash conda-install, engine="bash"}
-ENV_FILE=$(Rscript -e 'cat(system.file("python", "environment.yml", package = "incur"))')
+ENV_FILE=$(Rscript -e 'cat(system.file("python", "environment.yml", package = "dosefitr"))')
 
-# conda env create -n incur -f "$ENV_FILE"
+# conda env create -n dosefitr -f "$ENV_FILE"
 # or, faster:
-micromamba env create -n incur -f "$ENV_FILE"
+micromamba env create -n dosefitr -f "$ENV_FILE"
 
-conda activate incur
+conda activate dosefitr
 ```
 
 #### Finding the Python executable path
 
-Once the environment is active, get the full path to the Python executable — you will need this for the `python` argument in each `incur` function:
+Once the environment is active, get the full path to the Python executable — you will need this for the `python` argument in each `dosefitr` function:
 
 ```{bash which-python, engine="bash"}
 # micromamba
-micromamba run -n incur which python
+micromamba run -n dosefitr which python
 
 # conda
-conda run -n incur which python
+conda run -n dosefitr which python
 ```
 
 On most Linux/macOS systems this will be something like
-`~/micromamba/envs/incur/bin/python` or `~/miniconda3/envs/incur/bin python`. Store it in a variable at the top of your analysis script for convenience:
+`~/micromamba/envs/dosefitr/bin/python` or `~/miniconda3/envs/dosefitr/bin python`. Store it in a variable at the top of your analysis script for convenience:
 
 ```{r python-path}
-python_bin <- "~/micromamba/envs/incur/bin/python"   # adjust to your system
+python_bin <- "~/micromamba/envs/dosefitr/bin/python"   # adjust to your system
 ```
 
 ```r
 # Check that the bundled Python scripts are accessible
-system.file("python", "cellpose.py",       package = "incur")
-system.file("python", "merge_channels.py", package = "incur")
-system.file("python", "trackmate.py",      package = "incur")
+system.file("python", "cellpose.py",       package = "dosefitr")
+system.file("python", "merge_channels.py", package = "dosefitr")
+system.file("python", "trackmate.py",      package = "dosefitr")
 ```
 
 If you are using a conda or virtual environment, pass the full path to the Python executable via the `python` argument in each function (see below).

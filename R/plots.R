@@ -134,7 +134,7 @@ plot_model <- function(list, x_var, y_var, return_data = FALSE) {
         ggplot2::guides(shape = ggplot2::guide_legend("Outlier"))
       }
     } +
-    theme_incur()
+    theme_dosefitr()
 
   return(gg)
 }
@@ -381,7 +381,7 @@ extract_concentration_info <- function(
 #' A \code{ggplot2} object showing observed data as semi-transparent
 #'   points and fitted curves as solid lines, coloured by concentration.
 #' @seealso \code{\link{interpolate_curve_concentration}},
-#'   \code{\link{calc_inhibition_metrics}}, \code{\link{theme_incur}}
+#'   \code{\link{calc_inhibition_metrics}}, \code{\link{theme_dosefitr}}
 #' @examples
 #' \dontrun{
 #' p <- plot_curve_concentration(
@@ -523,7 +523,7 @@ plot_curve_concentration <- function(
       guide = ggplot2::guide_legend(concentration_column)
     ) +
     ggplot2::labs(x = x_var, y = y_var) +
-    theme_incur()
+    theme_dosefitr()
 
   return(gg)
 }
@@ -647,7 +647,7 @@ plot_curve_concentration_metric_time <- function(
     ) +
     ggplot2::ylim(c(-1, 1)) +
     ggplot2::labs(x = x_var, y = metric) +
-    theme_incur()
+    theme_dosefitr()
 
   return(list(data = data, plot = gg))
 }
@@ -673,7 +673,7 @@ plot_curve_concentration_metric_time <- function(
 #'   NDR values are calculated. Default is NULL.
 #' @param curve_opts A named list of curve fitting options. Elements include:
 #'   \itemize{
-#'     \item `model`: Character string specifying a built-in model from \code{incur_models} or "loess".
+#'     \item `model`: Character string specifying a built-in model from \code{dosefitr_models} or "loess".
 #'     \item `model_func`: A function that describes a curve in terms of x (used if \code{model} is NA).
 #'     \item `start_func`: A function that generates a named list of starting values for `model_func` (used if \code{model} is NA).
 #'     \item `start_values`: A named list of starting values for `model_func`.
@@ -697,7 +697,7 @@ plot_curve_concentration_metric_time <- function(
 #'       formatted for log-molar concentrations.}
 #'   }
 #' @seealso \code{\link{calc_inhibition_metrics}}, \code{\link{fit_curve}},
-#'   \code{\link{theme_incur}}
+#'   \code{\link{theme_dosefitr}}
 #' @examples
 #' \dontrun{
 #' result <- plot_curve_concentration_metric_dose(
@@ -797,7 +797,7 @@ plot_curve_concentration_metric_dose <- function(
     ggplot2::ylim(c(-1, 1)) +
     ggplot2::labs(x = concentration_column, y = metric) +
     ggplot2::guides(colour = "none") +
-    theme_incur()
+    theme_dosefitr()
 
   if (!inherits(metric_50, "try-error")) {
     gg <- gg +
@@ -834,7 +834,7 @@ plot_curve_concentration_metric_dose <- function(
 #'   drug concentrations in log10 molar format.
 #' @param curve_opts A named list of curve fitting options. Elements include:
 #'   \itemize{
-#'     \item `model`: Character string specifying a built-in model from \code{incur_models} or "loess".
+#'     \item `model`: Character string specifying a built-in model from \code{dosefitr_models} or "loess".
 #'     \item `model_func`: A function that describes a curve in terms of x (used if \code{model} is NA).
 #'     \item `start_func`: A function that generates a named list of starting values for `model_func` (used if \code{model} is NA).
 #'     \item `start_values`: A named list of starting values for `model_func`.
@@ -859,7 +859,7 @@ plot_curve_concentration_metric_dose <- function(
 #' Higher LGR scores indicate greater overall drug efficacy. The adjusted
 #' score penalises poor model fits.
 #' @seealso \code{\link{calc_inhibition_metrics}}, \code{\link{fit_curve}},
-#'   \code{\link{interpolate_curve_concentration}}, \code{\link{theme_incur}}
+#'   \code{\link{interpolate_curve_concentration}}, \code{\link{theme_dosefitr}}
 #' @examples
 #' \dontrun{
 #' # Calculate and plot LGR score
@@ -1007,7 +1007,7 @@ plot_lgr_score <- function(
         sep = ""
       )
     ) +
-    theme_incur()
+    theme_dosefitr()
 
   return(gg)
 }

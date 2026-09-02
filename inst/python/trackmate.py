@@ -2,7 +2,7 @@
 Run Trackmate on a folder of images with associated masks.
 
 Usage:
-    python incur_trackmate.py --input_dir --fiji_path [...]
+    python dosefitr_trackmate.py --input_dir --fiji_path [...]
 """
 
 import argparse
@@ -98,17 +98,17 @@ class TrackMateConfig:
             arg_name = f"--{field_name}"
             default_value = field_def.default
             help_text = (
-                f"{field_def.metadata.get('help','')} (default: {default_value})"
+                f"{field_def.metadata.get('help', '')} (default: {default_value})"
             )
             if field_def.type == bool:
                 groups[group_name].add_argument(
                     arg_name, action="store_true", default=default_value, help=help_text
                 )
                 groups[group_name].add_argument(
-                    f"--no-{field_name.replace('_','-')}",
+                    f"--no-{field_name.replace('_', '-')}",
                     dest=field_name,
                     action="store_false",
-                    help=f"Disable {field_name.replace('_',' ')}",
+                    help=f"Disable {field_name.replace('_', ' ')}",
                 )
             else:
                 groups[group_name].add_argument(

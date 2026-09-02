@@ -25,7 +25,7 @@ Originally developed for high-content live-cell imaging data, dosefitr is **plat
 
 **Installation**
 
-You can install incur via:
+You can install dosefitr via:
 
 ```{r}
 remotes::install_github("moorezac/dosefitr")
@@ -33,7 +33,7 @@ remotes::install_github("moorezac/dosefitr")
 
 **Usage**
 
-The principle goal of dosefitr is to provide a user-friendly pipeline to segment, analyse, and visualise image-based longitudinal drug response data data.
+The principle goal of dosefitr is to provide a user-friendly pipeline to segment, analyse, and visualise image-based longitudinal drug response data.
 
 ### 1. Image Processing
 

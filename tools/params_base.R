@@ -5,7 +5,7 @@
 #'
 #' @param curve_opts A named list of curve fitting options. Elements include:
 #'   \itemize{
-#'     \item `model`: Character string specifying a built-in model from \code{incur_models} or "loess".
+#'     \item `model`: Character string specifying a built-in model from \code{dosefitr_models} or "loess".
 #'     \item `model_func`: A function that describes a curve in terms of x (used if \code{model} is NA).
 #'     \item `start_func`: A function that generates a named list of starting values for `model_func` (used if \code{model} is NA).
 #'     \item `start_values`: A named list of starting values for `model_func`.
@@ -24,7 +24,7 @@
 #'   either \code{"gr"} for growth rate inhibition or \code{"ndr"} for
 #'   normalised drug response. Default is \code{"gr"}.
 #'
-#' @param models Character vector of model names from `incur_models`.
+#' @param models Character vector of model names from `dosefitr_models`.
 #'
 #' @param model_func A function that describes a curve in terms of `x`
 #'   and individual curve parameters.
@@ -65,14 +65,14 @@
 #' @param start_colour Hex colour string for the highest concentration. Lower
 #'   concentrations are displayed as progressively lighter tints. Default is
 #'   \code{"#0085ca"}.
-#'   
+#'
 #' @param start_func A function for generating a maed list of starting parameter values.
 #'
 #' @param start_values A named list of starting parameter values.
 #'
 #' @param treatment_column Character string specifying the column containing
 #'   treatment identifiers.
-#'   
+#'
 #' @param unique_concs Numeric vector of unique concentrations.
 #'
 #' @param x_var Character string specifying the column name for the independent
@@ -80,5 +80,5 @@
 #'
 #' @param y_var Character string specifying the column name for the dependent
 #'   variable (e.g., cell count, confluence, or a calculated metric).
-#'   
+#'
 NULL

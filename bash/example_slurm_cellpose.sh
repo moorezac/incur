@@ -1,6 +1,6 @@
 #! bin/bash
 ssh slurm-login << 'EOF'
-cd /vast/scratch/users/moore.z/projects/incur/
+cd /vast/scratch/users/moore.z/projects/dosefitr/
 module load miniconda3
 conda activate cellpose_sam
 srun \

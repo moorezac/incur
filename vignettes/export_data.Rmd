@@ -15,7 +15,7 @@ editor_options:
 
 # Export Data
 
-There are multiple methods to export data from an IncuCyte. `incur` expects data to be in the "Meta Imaging Series TIFF" format. Here we are using IncuCyte 2022B Rev 2. 
+There are multiple methods to export data from an IncuCyte. `dosefitr` expects data to be in the "Meta Imaging Series TIFF" format. Here we are using IncuCyte 2022B Rev 2. 
 
 Open up the plate, and select "Export Images and Movies". Then, make sure to choose "As Stored". For fluorescent data, if fluorophores have overlapping spectra, ensure that the overlap percentages are correctly set within "Spectral Unmixing". 
 

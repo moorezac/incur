@@ -30,7 +30,7 @@ run_cellpose <- function(
   cellpose_args = NULL,
   python = "python3"
 ) {
-  script <- system.file("python", "cellpose.py", package = "incur")
+  script <- system.file("python", "cellpose.py", package = "dosefitr")
 
   args <- c(
     script,
@@ -90,7 +90,7 @@ run_merge_channels <- function(
   cores = NULL,
   python = "python3"
 ) {
-  script <- system.file("python", "merge_channels.py", package = "incur")
+  script <- system.file("python", "merge_channels.py", package = "dosefitr")
 
   args <- c(script, input_dirs, output_dir)
 
@@ -192,7 +192,7 @@ run_trackmate <- function(
   track_merging_max_distance = 15.0,
   python = "python3"
 ) {
-  script <- system.file("python", "trackmate.py", package = "incur")
+  script <- system.file("python", "trackmate.py", package = "dosefitr")
 
   bool_arg <- function(flag, value) {
     if (isTRUE(value)) {

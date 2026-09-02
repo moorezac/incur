@@ -220,7 +220,7 @@ calc_double_rate_data <- function(
 
   gg_lin <- gg_lin +
     ggplot2::labs(x = x_var, y = y_var) +
-    theme_incur()
+    theme_dosefitr()
 
   # Add vertical lines
   if (!is.null(cell_column)) {
@@ -274,7 +274,7 @@ calc_double_rate_data <- function(
 
   gg_log <- gg_log +
     ggplot2::labs(x = x_var, y = paste0("log(", y_var, ")")) +
-    theme_incur()
+    theme_dosefitr()
 
   # Add vertical lines
   if (!is.null(cell_column)) {

@@ -15,7 +15,7 @@ variable (typically time).}
 \item{y_var}{Character string specifying the column name for the dependent
 variable (e.g., cell count, confluence, or a calculated metric).}
 
-\item{models}{Character vector of model names from \code{incur_models}.}
+\item{models}{Character vector of model names from \code{dosefitr_models}.}
 
 \item{outlier_opts}{A named list of shared parameter options. Elements include:
 \itemize{

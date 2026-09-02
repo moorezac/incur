@@ -15,7 +15,7 @@ interpolate_curve_concentration(
   loess = FALSE,
   loess_span = 0.3,
   outlier_opts = NA,
-  models = names(incur_models)
+  models = names(dosefitr_models)
 )
 }
 \arguments{
@@ -56,7 +56,7 @@ Default is FALSE.}
 \item \code{rout_scale}: Scale estimator for ROUT, either "mad" or "quantile" (default: "mad").
 }}
 
-\item{models}{Character vector of model names from \code{incur_models}.}
+\item{models}{Character vector of model names from \code{dosefitr_models}.}
 }
 \value{
 A list containing:

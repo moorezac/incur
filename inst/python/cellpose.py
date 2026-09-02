@@ -2,7 +2,7 @@
 Run Cellpose on all multi-series .tif images in a folder.
 
 Usage:
-    python incur_cellpose.py --input_dir --channels [-- --cellpose_args...]
+    python dosefitr_cellpose.py --input_dir --channels [-- --cellpose_args...]
 """
 
 import argparse
@@ -176,7 +176,6 @@ def process_all(
     progress_bar = tqdm(total=len(tiff_paths), unit="image", leave=False)
 
     for tiff_path in tiff_paths:
-
         progress_bar.set_description(f"{tiff_path.name}")
 
         with tempfile.TemporaryDirectory(dir=input_dir) as tmp_dir:
@@ -202,22 +201,22 @@ def concat_logs_and_clean(input_dir: Path) -> None:
     """Concatenate all .log files in a folder, prefixing each with its filename"""
     input_dir = Path(input_dir)
     output_path = input_dir / "cellpose.log"
-    
+
     log_files = sorted(p for p in input_dir.glob("*.log") if p.name != "cellpose.log")
     if not log_files:
         return
-    
+
     with open(output_path, "w") as outfile:
         for log_file in log_files:
             outfile.write(f"\n{log_file.name}\n")
             with open(log_file, "r") as infile:
                 outfile.write(infile.read().strip())
                 outfile.write("\n")
-    
+
     # Delete original log files
     for log_file in log_files:
         log_file.unlink()
-    
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -251,6 +250,7 @@ def main():
 
     process_all(args.input_dir, args.channels, args.cellpose_args)
     concat_logs_and_clean(args.input_dir)
+
 
 if __name__ == "__main__":
     main()

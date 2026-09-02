@@ -1,4 +1,4 @@
-Package: incur
+Package: dosefitr
 Type: Package
 Title: Analyse IncuCyte-derived and time-course dose-response experiments
 Description: A software package designed for analysing IncuCyte-derived data, with a strong focus on generalisable and automated non-linear regression for interpretation of growth curves and dose-response relationships.
@@ -12,11 +12,11 @@ Imports:
     minpack.lm,
     stats,
     tinter
-URL: https://github.com/moorezac/incur
+URL: https://github.com/moorezac/dosefitr
 License: use_gpl3_license()
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.3
 Depends: 
     R (>= 4.1.0)
 LazyData: true
+Config/roxygen2/version: 8.0.0

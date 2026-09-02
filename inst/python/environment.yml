@@ -1,4 +1,4 @@
-name: incur
+name: dosefitr
 channels:
   - conda-forge
 dependencies:
@@ -37,4 +37,4 @@ dependencies:
       - tqdm==4.67.1
       - typing_extensions==4.15.0
 
-prefix: "micromamba/envs/incur"
+prefix: "micromamba/envs/dosefitr"
